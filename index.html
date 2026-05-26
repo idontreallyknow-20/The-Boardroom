@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TrustLayer Pricing Simulator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --black: #0e0e10;
+    --ink: #1a1a1d;
+    --muted: #6b6b72;
+    --line: #ececef;
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --gold: #d4a017;
+    --gold-soft: #f7e6a8;
+    --gold-bg: #fff8e1;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    background: var(--black);
+    color: #fff;
+    padding: 28px 40px;
+    border-bottom: 4px solid var(--gold);
+  }
+  header .brand {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  header h1 {
+    margin: 6px 0 6px;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  header p {
+    margin: 0;
+    color: #c9c9cf;
+    max-width: 880px;
+    font-size: 14px;
+  }
+  main {
+    padding: 28px 40px 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 24px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  }
+  .card h2 {
+    margin: 0 0 14px;
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--black);
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 8px;
+    display: inline-block;
+  }
+  .row {
+    margin-bottom: 16px;
+  }
+  .row label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .row label .val {
+    color: var(--black);
+    background: var(--gold-bg);
+    border: 1px solid var(--gold-soft);
+    padding: 1px 8px;
+    border-radius: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--gold);
+  }
+  input[type=number] {
+    width: 90px;
+    padding: 4px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  .mix-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  .mix-row .name { font-weight: 600; }
+  .mix-warn {
+    font-size: 12px;
+    color: #b45309;
+    margin-top: 4px;
+    min-height: 16px;
+  }
+  .mix-ok { color: var(--muted); }
+  .sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .tier-block {
+    background: #fafafa;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .tier-block .head {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 8px;
+    color: var(--black);
+  }
+  .tier-row {
+    display: grid;
+    grid-template-columns: 1fr 70px 70px 70px;
+    gap: 6px;
+    align-items: center;
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .tier-row .lbl { color: var(--muted); }
+  .tier-row input { width: 100%; padding: 3px 6px; font-size: 12px; }
+  .tier-row .pct { text-align: right; font-variant-numeric: tabular-nums; }
+  .retainer-row {
+    display: grid;
+    grid-template-columns: 1fr 120px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: var(--gold);
+  }
+  .kpi .lbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .kpi .num {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--black);
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi .hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .chart-card h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--black);
+  }
+  .chart-wrap {
+    position: relative;
+    height: 260px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 10px 12px;
+    text-align: right;
+    border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  thead th {
+    background: var(--black);
+    color: var(--gold);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border: none;
+  }
+  tfoot td {
+    font-weight: 700;
+    background: var(--gold-bg);
+    border-top: 2px solid var(--gold);
+  }
+  .narrative {
+    background: var(--card);
+    border-left: 4px solid var(--gold);
+    padding: 16px 20px;
+    margin-top: 24px;
+    border-radius: 0 12px 12px 0;
+  }
+  .narrative p { margin: 0 0 10px; font-size: 13px; color: var(--ink); }
+  .narrative p:last-child { margin-bottom: 0; }
+  .narrative .tag {
+    display: inline-block;
+    background: var(--black);
+    color: var(--gold);
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-right: 8px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  @media (max-width: 1000px) {
+    .grid { grid-template-columns: 1fr; }
+    .charts { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    header, main { padding-left: 20px; padding-right: 20px; }
+  }
+  @media (max-width: 520px) {
+    .summary-grid { grid-template-columns: 1fr; }
+    .tier-row { grid-template-columns: 1fr 60px 60px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Nortam &nbsp;·&nbsp; The Boardroom Case</div>
+  <h1>TrustLayer Pricing Simulator</h1>
+  <p>A risk-tiered localization platform for regulated industries — combining AI translation, credentialed human review, and a tamper-evident TrustCertificate on every deliverable.</p>
+</header>
+
+<main>
+  <div class="grid">
+
+    <!-- ====== LEFT: INPUTS ====== -->
+    <div>
+      <div class="card" style="margin-bottom:18px;">
+        <h2>Scale & Discount</h2>
+
+        <div class="row">
+          <label>Number of customers <span class="val" id="custVal">100</span></label>
+          <input type="range" id="custSlider" min="10" max="1000" step="10" value="100" />
+          <div class="sub">CAC tier shifts at 10 and 100 customers.</div>
+        </div>
+
+        <div class="row">
+          <label>Discount rate <span class="val" id="discVal">0%</span></label>
+          <input type="range" id="discSlider" min="0" max="40" step="1" value="0" />
+          <div class="sub">Applies to per-word revenue and platform retainer.</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:18px;">
+        <h2>Customer Mix</h2>
+        <div class="mix-row">
+          <span class="name">Large Law Firms</span>
+          <input type="number" id="mixLLF" min="0" max="100" value="30" />
+          <span class="pct">%</span>
+        </div>
+        <div class="mix-row">
+          <span class="name">FRFIs</span>
+          <input type="number" id="mixFRFI" min="0" max="100" value="50" />
+          <span class="pct">%</span>
+        </div>
+        <div class="mix-row">
+          <span class="name">Smaller Regulated</span>
+          <input type="number" id="mixSRA" min="0" max="100" value="20" />
+          <span class="pct">%</span>
+        </div>
+        <div class="mix-warn" id="mixWarn"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:18px;">
+        <h2>Tier Mix by Segment</h2>
+        <div class="sub" style="margin-bottom:10px;">T1 AI Assist · T2 Human Verified · T3 Certified Review (each row must sum to 100%).</div>
+
+        <div class="tier-block">
+          <div class="head">Large Law Firm</div>
+          <div class="tier-row"><span class="lbl">% by tier</span>
+            <input type="number" id="llf_t1" min="0" max="100" value="10" />
+            <input type="number" id="llf_t2" min="0" max="100" value="50" />
+            <input type="number" id="llf_t3" min="0" max="100" value="40" />
+          </div>
+          <div class="tier-row"><span class="lbl">&nbsp;</span><span class="pct">T1</span><span class="pct">T2</span><span class="pct">T3</span></div>
+        </div>
+
+        <div class="tier-block">
+          <div class="head">FRFI</div>
+          <div class="tier-row"><span class="lbl">% by tier</span>
+            <input type="number" id="frfi_t1" min="0" max="100" value="40" />
+            <input type="number" id="frfi_t2" min="0" max="100" value="45" />
+            <input type="number" id="frfi_t3" min="0" max="100" value="15" />
+          </div>
+        </div>
+
+        <div class="tier-block">
+          <div class="head">Smaller Regulated Account</div>
+          <div class="tier-row"><span class="lbl">% by tier</span>
+            <input type="number" id="sra_t1" min="0" max="100" value="65" />
+            <input type="number" id="sra_t2" min="0" max="100" value="30" />
+            <input type="number" id="sra_t3" min="0" max="100" value="5" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Annual Platform Retainer</h2>
+        <div class="retainer-row">
+          <span>Large Law Firm</span>
+          <input type="number" id="ret_llf" min="0" step="500" value="35000" />
+        </div>
+        <div class="retainer-row">
+          <span>FRFI</span>
+          <input type="number" id="ret_frfi" min="0" step="500" value="18000" />
+        </div>
+        <div class="retainer-row">
+          <span>Smaller Regulated Account</span>
+          <input type="number" id="ret_sra" min="0" step="500" value="8000" />
+        </div>
+        <div class="sub" style="margin-top:8px;">Fixed pricing assumptions (not editable): T1 $0.08/$0.025, T2 $0.16/$0.075, T3 $0.34/$0.18 (price/cost per word). Word volumes: LLF 1.5M, FRFI 1.0M, SRA 600K.</div>
+      </div>
+    </div>
+
+    <!-- ====== RIGHT: OUTPUTS ====== -->
+    <div>
+      <div class="summary-grid">
+        <div class="kpi"><div class="lbl">Total ARR</div><div class="num" id="kpi_arr">—</div><div class="hint" id="kpi_arr_sub">at current mix</div></div>
+        <div class="kpi"><div class="lbl">Avg ARR / Customer</div><div class="num" id="kpi_avg">—</div><div class="hint">blended</div></div>
+        <div class="kpi"><div class="lbl">Gross Margin</div><div class="num" id="kpi_gm">—</div><div class="hint">(rev − direct cost) / rev</div></div>
+        <div class="kpi"><div class="lbl">CAC Payback</div><div class="num" id="kpi_cac">—</div><div class="hint" id="kpi_cac_sub">months</div></div>
+        <div class="kpi"><div class="lbl">Operational Break-Even</div><div class="num" id="kpi_be1">—</div><div class="hint">customers · $1.7M fixed</div></div>
+        <div class="kpi"><div class="lbl">Fully Loaded Break-Even</div><div class="num" id="kpi_be2">—</div><div class="hint">customers · $2.9M fixed</div></div>
+      </div>
+
+      <div class="charts">
+        <div class="chart-card">
+          <h3>ARR by Customer Segment</h3>
+          <div class="chart-wrap"><canvas id="segChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Total ARR — 10 / 100 / 1,000 Customers</h3>
+          <div class="chart-wrap"><canvas id="scaleChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3>Results Table</h3>
+        <table id="resultsTable">
+          <thead>
+            <tr>
+              <th>Segment</th>
+              <th># Customers</th>
+              <th>Rev / Customer</th>
+              <th>Direct Cost / Customer</th>
+              <th>Contribution / Customer</th>
+              <th>Segment ARR</th>
+              <th>Segment Direct Cost</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td id="tf_n"></td>
+              <td id="tf_rev"></td>
+              <td id="tf_cost"></td>
+              <td id="tf_contrib"></td>
+              <td id="tf_arr"></td>
+              <td id="tf_dcost"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="narrative">
+        <p><span class="tag">Model</span>TrustLayer's revenue model combines per-word pricing with an annual platform retainer. As Nortam scales from large law firms to smaller regulated accounts, average revenue per customer falls, but total ARR grows because the product becomes more standardized and the self-serve Tier 1 path absorbs lower-volume buyers.</p>
+        <p><span class="tag">Caveat</span>This simulator is not a forecast. It is a sensitivity model that shows how TrustLayer's economics change when customer mix, discounting, and tier usage assumptions change.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>TrustLayer Pricing Simulator · Nortam · The Boardroom</footer>
+</main>
+
+<script>
+/* =========================================================
+   TrustLayer Pricing Simulator
+   All formulas computed client-side; no backend.
+   ========================================================= */
+
+// --- Fixed pricing & volume assumptions (per case spec) ---
+const TIER = {
+  t1: { price: 0.08, cost: 0.025 },
+  t2: { price: 0.16, cost: 0.075 },
+  t3: { price: 0.34, cost: 0.18  }
+};
+const WORDS = { llf: 1_500_000, frfi: 1_000_000, sra: 600_000 };
+const FIXED_OPS = 1_700_000;     // operational break-even denominator
+const FIXED_FULL = 2_900_000;    // fully loaded ($1.7M + $1.2M one-time)
+
+// Loaded CAC per customer, tiered by total customer count.
+function cacFor(nCustomers) {
+  if (nCustomers <= 10)   return 22_500;
+  if (nCustomers <= 100)  return 14_500;
+  return 6_000;
+}
+
+// Helpers
+const $ = id => document.getElementById(id);
+const fmt$ = (n, d=0) => "$" + (n||0).toLocaleString(undefined,{maximumFractionDigits:d, minimumFractionDigits:d});
+const fmt$M = n => "$" + (n/1_000_000).toLocaleString(undefined,{maximumFractionDigits:1, minimumFractionDigits:1}) + "M";
+const fmtPct = (x, d=1) => (x*100).toLocaleString(undefined,{maximumFractionDigits:d}) + "%";
+const round = (n, d=0) => Math.round(n*10**d)/10**d;
+
+// Read the tier-mix inputs and normalize defensively (so a row summing
+// to something other than 100 still produces a sensible blend).
+function readTierMix(prefix) {
+  const t1 = +$(`${prefix}_t1`).value || 0;
+  const t2 = +$(`${prefix}_t2`).value || 0;
+  const t3 = +$(`${prefix}_t3`).value || 0;
+  const sum = t1 + t2 + t3 || 1;
+  return { t1: t1/sum, t2: t2/sum, t3: t3/sum };
+}
+
+// Per-customer revenue & direct cost for one segment.
+// Revenue = words × Σ(tier_share × tier_price) × (1−discount) + retainer × (1−discount)
+// Cost    = words × Σ(tier_share × tier_cost)   [discount does not affect cost]
+function segmentEconomics(words, mix, retainer, discount) {
+  const blendedPrice = mix.t1 * TIER.t1.price + mix.t2 * TIER.t2.price + mix.t3 * TIER.t3.price;
+  const blendedCost  = mix.t1 * TIER.t1.cost  + mix.t2 * TIER.t2.cost  + mix.t3 * TIER.t3.cost;
+  const perWordRev = words * blendedPrice * (1 - discount);
+  const directCost = words * blendedCost;
+  const retainerRev = retainer * (1 - discount);
+  const revenue = perWordRev + retainerRev;
+  return { revenue, directCost, contribution: revenue - directCost, perWordRev, retainerRev };
+}
+
+// Pull all inputs into a single state object.
+function readState() {
+  const customers = +$("custSlider").value;
+  const discount  = (+$("discSlider").value) / 100;
+
+  const pLLF  = +$("mixLLF").value  || 0;
+  const pFRFI = +$("mixFRFI").value || 0;
+  const pSRA  = +$("mixSRA").value  || 0;
+  const pSum  = pLLF + pFRFI + pSRA || 1;
+
+  // Normalize for math; warn separately if user-entered values ≠ 100.
+  const shares = { llf: pLLF/pSum, frfi: pFRFI/pSum, sra: pSRA/pSum };
+
+  return {
+    customers, discount,
+    rawMixSum: pLLF + pFRFI + pSRA,
+    shares,
+    mixes: {
+      llf:  readTierMix("llf"),
+      frfi: readTierMix("frfi"),
+      sra:  readTierMix("sra")
+    },
+    retainers: {
+      llf:  +$("ret_llf").value  || 0,
+      frfi: +$("ret_frfi").value || 0,
+      sra:  +$("ret_sra").value  || 0
+    }
+  };
+}
+
+// Core compute: given state + (optionally overridden) customer count,
+// returns segment-level and totals. Used both for the live view and
+// for the 10/100/1000 scale chart.
+function compute(state, nOverride) {
+  const n = nOverride ?? state.customers;
+  const segDefs = [
+    { key:"llf",  name:"Large Law Firms",          words: WORDS.llf,  retainer: state.retainers.llf,  mix: state.mixes.llf  },
+    { key:"frfi", name:"FRFIs",                    words: WORDS.frfi, retainer: state.retainers.frfi, mix: state.mixes.frfi },
+    { key:"sra",  name:"Smaller Regulated",        words: WORDS.sra,  retainer: state.retainers.sra,  mix: state.mixes.sra  }
+  ];
+
+  const segments = segDefs.map(s => {
+    const econ = segmentEconomics(s.words, s.mix, s.retainer, state.discount);
+    const count = n * state.shares[s.key];
+    return {
+      ...s,
+      perCustomerRev: econ.revenue,
+      perCustomerCost: econ.directCost,
+      perCustomerContrib: econ.contribution,
+      count,
+      segARR:  econ.revenue * count,
+      segCost: econ.directCost * count,
+      segContrib: econ.contribution * count
+    };
+  });
+
+  const totalARR     = segments.reduce((a,s)=>a+s.segARR,0);
+  const totalCost    = segments.reduce((a,s)=>a+s.segCost,0);
+  const totalContrib = segments.reduce((a,s)=>a+s.segContrib,0);
+
+  const avgARR     = n > 0 ? totalARR / n : 0;
+  const avgContrib = n > 0 ? totalContrib / n : 0;
+  const grossMargin = totalARR > 0 ? (totalARR - totalCost) / totalARR : 0;
+
+  // CAC payback (months) = loaded CAC / (annual contribution / 12)
+  const cac = cacFor(n);
+  const monthlyContrib = avgContrib / 12;
+  const cacPaybackMo = monthlyContrib > 0 ? cac / monthlyContrib : Infinity;
+
+  // Break-even customer counts = fixed cost / contribution per customer.
+  const beOps  = avgContrib > 0 ? FIXED_OPS  / avgContrib : Infinity;
+  const beFull = avgContrib > 0 ? FIXED_FULL / avgContrib : Infinity;
+
+  return { n, segments, totalARR, totalCost, totalContrib, avgARR, avgContrib, grossMargin, cac, cacPaybackMo, beOps, beFull };
+}
+
+// --- Chart.js setup ---
+const goldGrad = (ctx) => {
+  const c = ctx.chart.ctx;
+  const g = c.createLinearGradient(0,0,0,260);
+  g.addColorStop(0, "#e8b733");
+  g.addColorStop(1, "#d4a017");
+  return g;
+};
+
+const segChart = new Chart($("segChart"), {
+  type: "bar",
+  data: {
+    labels: ["Large Law Firms","FRFIs","Smaller Regulated"],
+    datasets: [{
+      label: "ARR",
+      data: [0,0,0],
+      backgroundColor: ctx => goldGrad(ctx),
+      borderColor: "#0e0e10",
+      borderWidth: 1,
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { ticks: { callback: v => "$" + (v/1e6).toFixed(1) + "M" }, grid: { color: "#eee" } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+const scaleChart = new Chart($("scaleChart"), {
+  type: "bar",
+  data: {
+    labels: ["10","100","1,000"],
+    datasets: [{
+      label: "Total ARR",
+      data: [0,0,0],
+      backgroundColor: ["#0e0e10","#3a3a3f","#d4a017"],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: c => fmt$M(c.parsed.y) } } },
+    scales: {
+      y: { ticks: { callback: v => "$" + (v/1e6).toFixed(0) + "M" }, grid: { color: "#eee" } },
+      x: { title: { display: true, text: "Customers", color: "#6b6b72" }, grid: { display: false } }
+    }
+  }
+});
+
+// --- Render ---
+function render() {
+  const state = readState();
+
+  // Live readouts on sliders.
+  $("custVal").textContent = state.customers.toLocaleString();
+  $("discVal").textContent = (state.discount*100).toFixed(0) + "%";
+
+  // Mix-sum warning.
+  const warn = $("mixWarn");
+  if (state.rawMixSum === 100) {
+    warn.textContent = "Mix sums to 100%.";
+    warn.className = "mix-warn mix-ok";
+  } else {
+    warn.textContent = `Mix sums to ${state.rawMixSum}% — values will be normalized to 100% for the math.`;
+    warn.className = "mix-warn";
+  }
+
+  const r = compute(state);
+
+  // KPIs
+  $("kpi_arr").textContent = fmt$M(r.totalARR);
+  $("kpi_arr_sub").textContent = `${state.customers.toLocaleString()} customers · ${(state.discount*100).toFixed(0)}% discount`;
+  $("kpi_avg").textContent = fmt$(r.avgARR, 0);
+  $("kpi_gm").textContent  = fmtPct(r.grossMargin, 1);
+  $("kpi_cac").textContent = isFinite(r.cacPaybackMo) ? r.cacPaybackMo.toFixed(1) + " mo" : "—";
+  $("kpi_cac_sub").textContent = `loaded CAC ${fmt$(r.cac)}`;
+  $("kpi_be1").textContent = isFinite(r.beOps)  ? Math.ceil(r.beOps).toLocaleString()  : "—";
+  $("kpi_be2").textContent = isFinite(r.beFull) ? Math.ceil(r.beFull).toLocaleString() : "—";
+
+  // Segment chart
+  segChart.data.datasets[0].data = r.segments.map(s => s.segARR);
+  segChart.update();
+
+  // Scale chart — recompute total ARR at fixed counts (same mix/tier/discount).
+  const at10   = compute(state, 10).totalARR;
+  const at100  = compute(state, 100).totalARR;
+  const at1000 = compute(state, 1000).totalARR;
+  scaleChart.data.datasets[0].data = [at10, at100, at1000];
+  scaleChart.update();
+
+  // Table
+  const tbody = document.querySelector("#resultsTable tbody");
+  tbody.innerHTML = "";
+  r.segments.forEach(s => {
+    tbody.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>${s.name}</td>
+        <td>${s.count.toFixed(1)}</td>
+        <td>${fmt$(s.perCustomerRev)}</td>
+        <td>${fmt$(s.perCustomerCost)}</td>
+        <td>${fmt$(s.perCustomerContrib)}</td>
+        <td>${fmt$M(s.segARR)}</td>
+        <td>${fmt$M(s.segCost)}</td>
+      </tr>`);
+  });
+  $("tf_n").textContent     = state.customers.toLocaleString();
+  $("tf_rev").textContent   = fmt$(r.avgARR);
+  $("tf_cost").textContent  = fmt$(state.customers ? r.totalCost/state.customers : 0);
+  $("tf_contrib").textContent = fmt$(r.avgContrib);
+  $("tf_arr").textContent   = fmt$M(r.totalARR);
+  $("tf_dcost").textContent = fmt$M(r.totalCost);
+}
+
+// Wire up every input → re-render on each change.
+document.querySelectorAll("input").forEach(el => {
+  el.addEventListener("input", render);
+  el.addEventListener("change", render);
+});
+
+render();
+</script>
+</body>
+</html>
