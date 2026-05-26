@@ -1332,7 +1332,7 @@ function setTheme(t) {
 function initTheme() {
   let t = null;
   try { t = localStorage.getItem("trustlayer-theme"); } catch(e) {}
-  if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  if (!t) t = "light";
   document.documentElement.setAttribute("data-theme", t);
 }
 
