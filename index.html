@@ -611,6 +611,27 @@ footer {
 @keyframes rot { to { transform: rotate(360deg); } }
 .loaded .loading-veil { opacity: 0; pointer-events: none; }
 
+/* =============== Toast =============== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: var(--ink); color: var(--bg);
+  padding: 12px 18px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid var(--ink);
+  opacity: 0; pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+  z-index: 300;
+  display: inline-flex; align-items: center; gap: 8px;
+  white-space: nowrap;
+  max-width: 90vw;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { background: #b91c1c; border-color: #b91c1c; color: #fff; }
+.toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); }
+.toast.error .dot { background: #fff; }
+
 /* =============== Snapshot mode tweaks =============== */
 body.snapshot .nav-links a[href="#assumptions"],
 body.snapshot .nav-links a[href="#methodology"] { display: none; }
@@ -660,6 +681,7 @@ body.snapshot .snapshot-banner {
 <body>
 
 <div class="loading-veil"><div class="spin"></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <!-- ============ NAV ============ -->
 <nav class="nav">
@@ -679,6 +701,10 @@ body.snapshot .snapshot-banner {
     <div class="nav-actions">
       <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle theme">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+      <button class="btn btn-primary" id="captureBtn" title="Copy snapshot to clipboard (C)">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="0"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy snapshot<span class="kbd">C</span>
       </button>
       <button class="btn" id="snapshotBtn" title="Toggle snapshot view (S)">Snapshot<span class="kbd">S</span></button>
       <button class="btn btn-ghost" id="resetBtn" title="Reset to defaults (R)">Reset<span class="kbd">R</span></button>
@@ -707,6 +733,9 @@ body.snapshot .snapshot-banner {
   <span id="snapshotScenarioLabel">Base Case</span>
   <span style="color: var(--muted); margin-left:auto;">Inputs hidden for clean screenshots, press S to exit.</span>
 </div>
+
+<!-- ============ CAPTURE AREA: wraps KPIs + Model for clipboard snapshot ============ -->
+<div id="captureArea">
 
 <!-- ============ KPI STRIP ============ -->
 <div class="kpi-strip" id="results">
@@ -894,6 +923,8 @@ body.snapshot .snapshot-banner {
     </div>
   </div>
 </section>
+
+</div><!-- /captureArea -->
 
 <!-- ============ ASSUMPTIONS ============ -->
 <section class="section" id="assumptions">
@@ -1342,6 +1373,147 @@ function toggleSnapshot() {
   $("snapshotBanner").style.display = document.body.classList.contains("snapshot") ? "flex" : "none";
 }
 
+/* ============ Toast ============ */
+function showToast(msg, opts) {
+  const t = $("toast");
+  const isError = opts && opts.error;
+  t.innerHTML = `<span class="dot"></span>${msg}`;
+  t.classList.toggle("error", !!isError);
+  t.classList.add("show");
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove("show"), opts && opts.duration ? opts.duration : 2600);
+}
+
+/* ============ Snapshot capture to clipboard ============ */
+let _h2cLoading = null;
+function loadHtml2Canvas() {
+  if (window.html2canvas) return Promise.resolve();
+  if (_h2cLoading) return _h2cLoading;
+  _h2cLoading = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+    s.onload = resolve;
+    s.onerror = () => reject(new Error("Failed to load html2canvas"));
+    document.head.appendChild(s);
+  });
+  return _h2cLoading;
+}
+
+function activeScenarioLabel() {
+  const a = document.querySelector(".scenario-btn.active");
+  if (!a) return "Custom";
+  // Strip the trailing kbd number from the button text.
+  return a.textContent.replace(/\d+\s*$/, "").trim() + " Case";
+}
+
+async function copySnapshot() {
+  const btn = $("captureBtn");
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span style="opacity:0.7">Capturing...</span>';
+
+  try {
+    await loadHtml2Canvas();
+
+    // Enter snapshot layout for the capture, then restore.
+    const wasSnapshot = document.body.classList.contains("snapshot");
+    if (!wasSnapshot) document.body.classList.add("snapshot");
+    // Two frames so layout settles before the rasterization.
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    const node = $("captureArea");
+    const bodyBg = getComputedStyle(document.body).backgroundColor;
+    const canvas = await window.html2canvas(node, {
+      backgroundColor: bodyBg,
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      windowWidth: document.documentElement.clientWidth
+    });
+
+    if (!wasSnapshot) document.body.classList.remove("snapshot");
+
+    // Compose final canvas: capture + dark citation strip at bottom.
+    const scenario = activeScenarioLabel();
+    const dateStr = new Date().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    const stripH = 110;                     // CSS pixels
+    const pad = 32;
+    const w = canvas.width;
+    const out = document.createElement("canvas");
+    out.width = w;
+    out.height = canvas.height + stripH * 2; // *2 because canvas is already 2x scale
+    const ctx = out.getContext("2d");
+    ctx.fillStyle = bodyBg;
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(canvas, 0, 0);
+
+    // Citation strip
+    const stripY = canvas.height;
+    ctx.fillStyle = "#0a0c10";
+    ctx.fillRect(0, stripY, w, stripH * 2);
+    ctx.fillStyle = "#c9a227";
+    ctx.fillRect(0, stripY, 12, stripH * 2);
+
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "600 32px Inter, -apple-system, sans-serif";
+    ctx.fillText("TrustLayer Pricing Simulator", pad * 2, stripY + 28);
+
+    ctx.fillStyle = "#9ca3af";
+    ctx.font = "400 20px Inter, -apple-system, sans-serif";
+    ctx.fillText(`Nortam, The Boardroom 2026   ,   Scenario: ${scenario}   ,   Captured ${dateStr}`, pad * 2, stripY + 78);
+
+    ctx.fillStyle = "#6b7280";
+    ctx.font = "400 18px Inter, -apple-system, sans-serif";
+    ctx.fillText(location.host + location.pathname, pad * 2, stripY + 132);
+
+    // Render to blob and write to clipboard (image + text).
+    const blob = await new Promise(resolve => out.toBlob(resolve, "image/png"));
+    const citation =
+      `TrustLayer Pricing Simulator. Nortam, The Boardroom 2026. ` +
+      `Scenario: ${scenario}. Captured ${new Date().toLocaleString()}. ` +
+      `Source: ${location.href}`;
+
+    let copiedBoth = false;
+    if (navigator.clipboard && window.ClipboardItem) {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "image/png": blob,
+            "text/plain": new Blob([citation], { type: "text/plain" })
+          })
+        ]);
+        copiedBoth = true;
+      } catch (e) {
+        // Some browsers reject multi-type ClipboardItems. Try image-only.
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+          await navigator.clipboard.writeText(citation).catch(() => {});
+          copiedBoth = true;
+        } catch (e2) { /* fall through to download */ }
+      }
+    }
+
+    if (copiedBoth) {
+      showToast("Snapshot and citation copied to clipboard");
+    } else {
+      // Fallback: download image, copy citation text.
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `trustlayer-${scenario.toLowerCase().replace(/\s+/g, "-")}.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+      try { await navigator.clipboard.writeText(citation); } catch (e) {}
+      showToast("Browser blocked image copy. Saved PNG, copied citation text.", { duration: 4000 });
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("Could not capture snapshot. " + (err && err.message ? err.message : ""), { error: true, duration: 4000 });
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
+}
+
 /* ============ Wiring ============ */
 function wireUp() {
   document.querySelectorAll("input").forEach(el => {
@@ -1357,6 +1529,7 @@ function wireUp() {
   });
   $("snapshotBtn").addEventListener("click", toggleSnapshot);
   $("resetBtn").addEventListener("click", () => applyScenario("base"));
+  $("captureBtn").addEventListener("click", copySnapshot);
 
   // Keyboard shortcuts.
   document.addEventListener("keydown", e => {
@@ -1366,6 +1539,7 @@ function wireUp() {
     if (map[e.key]) { applyScenario(map[e.key]); e.preventDefault(); }
     else if (e.key.toLowerCase() === "r") { applyScenario("base"); }
     else if (e.key.toLowerCase() === "s") { toggleSnapshot(); }
+    else if (e.key.toLowerCase() === "c") { copySnapshot(); }
     else if (e.key.toLowerCase() === "d") {
       const cur = document.documentElement.getAttribute("data-theme");
       setTheme(cur === "dark" ? "light" : "dark");
