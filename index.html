@@ -12,9 +12,13 @@
 <meta property="og:title" content="TrustLayer Pricing Simulator" />
 <meta property="og:description" content="Interactive sensitivity model. Drag a slider, watch ARR, margin, CAC payback, and break-even update live." />
 <meta property="og:site_name" content="Nortam TrustLayer" />
+<meta property="og:image" content="og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="TrustLayer Pricing Simulator" />
 <meta name="twitter:description" content="Sensitivity model for TrustLayer ARR, margin, CAC payback, and break-even." />
+<meta name="twitter:image" content="og-image.png" />
 
 <!-- Inline SVG favicon, neutral gold square with T -->
 <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%230b0d12"/><path d="M16 22h32v6H36v22h-8V28H16z" fill="%23c9a227"/></svg>' />
@@ -22,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="chart.umd.min.js"></script>
 
 <style>
 /* =============================================================
@@ -162,6 +166,11 @@ button { font-family: inherit; cursor: pointer; }
 }
 .icon-btn:hover { color: var(--ink); background: var(--hover); }
 .icon-btn svg { width: 16px; height: 16px; }
+/* Show the icon for the mode you would switch TO. */
+#themeBtn .icon-sun { display: none; }
+#themeBtn .icon-moon { display: block; }
+[data-theme="dark"] #themeBtn .icon-sun { display: block; }
+[data-theme="dark"] #themeBtn .icon-moon { display: none; }
 
 /* =============== Hero =============== */
 .hero {
@@ -731,8 +740,9 @@ body.snapshot .snapshot-banner {
       <a href="#results">Results</a>
     </div>
     <div class="nav-actions">
-      <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle theme">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      <button class="icon-btn" id="themeBtn" title="Toggle dark mode (D)" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
       <button class="btn btn-primary" id="captureBtn" title="Copy snapshot to clipboard (C)">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="0"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -827,20 +837,20 @@ body.snapshot .snapshot-banner {
         <h3>Scale &amp; Discount <span class="badge">01</span></h3>
         <div class="row">
           <label><span class="lbl-text">Number of customers <span class="info" data-tip="Total customers Nortam serves in Year 1. CAC tier shifts at 10 and 100.">i</span></span><span class="val" id="custVal">100</span></label>
-          <input type="range" id="custSlider" min="10" max="1000" step="10" value="100" />
+          <input type="range" id="custSlider" min="10" max="1000" step="10" value="100" aria-label="Number of customers" />
           <div class="sub">CAC bracket: <span id="cacBracketLabel" class="mono">11 to 100</span></div>
         </div>
         <div class="row">
           <label><span class="lbl-text">Discount rate <span class="info" data-tip="Blanket reduction to per-word revenue and platform retainer. Direct cost is unaffected.">i</span></span><span class="val" id="discVal">0%</span></label>
-          <input type="range" id="discSlider" min="0" max="40" step="1" value="0" />
+          <input type="range" id="discSlider" min="0" max="40" step="1" value="0" aria-label="Discount rate percent" />
         </div>
       </div>
 
       <div class="card">
         <h3>Customer Mix <span class="badge">02</span></h3>
-        <div class="mix-row"><span class="name">Large Law Firms</span><input type="number" id="mixLLF" min="0" max="100" value="30" /></div>
-        <div class="mix-row"><span class="name">FRFIs</span><input type="number" id="mixFRFI" min="0" max="100" value="50" /></div>
-        <div class="mix-row"><span class="name">Smaller Regulated Accounts</span><input type="number" id="mixSRA" min="0" max="100" value="20" /></div>
+        <div class="mix-row"><span class="name">Large Law Firms</span><input type="number" id="mixLLF" min="0" max="100" value="30" aria-label="Large Law Firms mix percent" /></div>
+        <div class="mix-row"><span class="name">FRFIs</span><input type="number" id="mixFRFI" min="0" max="100" value="50" aria-label="FRFIs mix percent" /></div>
+        <div class="mix-row"><span class="name">Smaller Regulated Accounts</span><input type="number" id="mixSRA" min="0" max="100" value="20" aria-label="Smaller Regulated Accounts mix percent" /></div>
         <div class="mix-status">
           <span class="pill" id="mixPill">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -857,43 +867,43 @@ body.snapshot .snapshot-banner {
         <div class="tier-block">
           <div class="head">Large Law Firm <span class="sum-pill" id="sum_llf">100%</span></div>
           <div class="tier-grid">
-            <div class="tcol"><div class="clbl">T1</div><input type="number" id="llf_t1" min="0" max="100" value="10" /></div>
-            <div class="tcol"><div class="clbl">T2</div><input type="number" id="llf_t2" min="0" max="100" value="50" /></div>
-            <div class="tcol"><div class="clbl">T3</div><input type="number" id="llf_t3" min="0" max="100" value="40" /></div>
+            <div class="tcol"><div class="clbl">T1</div><input type="number" id="llf_t1" min="0" max="100" value="10" aria-label="Large Law Firm Tier 1 percent" /></div>
+            <div class="tcol"><div class="clbl">T2</div><input type="number" id="llf_t2" min="0" max="100" value="50" aria-label="Large Law Firm Tier 2 percent" /></div>
+            <div class="tcol"><div class="clbl">T3</div><input type="number" id="llf_t3" min="0" max="100" value="40" aria-label="Large Law Firm Tier 3 percent" /></div>
           </div>
         </div>
 
         <div class="tier-block">
           <div class="head">FRFI <span class="sum-pill" id="sum_frfi">100%</span></div>
           <div class="tier-grid">
-            <div class="tcol"><div class="clbl">T1</div><input type="number" id="frfi_t1" min="0" max="100" value="40" /></div>
-            <div class="tcol"><div class="clbl">T2</div><input type="number" id="frfi_t2" min="0" max="100" value="45" /></div>
-            <div class="tcol"><div class="clbl">T3</div><input type="number" id="frfi_t3" min="0" max="100" value="15" /></div>
+            <div class="tcol"><div class="clbl">T1</div><input type="number" id="frfi_t1" min="0" max="100" value="40" aria-label="FRFI Tier 1 percent" /></div>
+            <div class="tcol"><div class="clbl">T2</div><input type="number" id="frfi_t2" min="0" max="100" value="45" aria-label="FRFI Tier 2 percent" /></div>
+            <div class="tcol"><div class="clbl">T3</div><input type="number" id="frfi_t3" min="0" max="100" value="15" aria-label="FRFI Tier 3 percent" /></div>
           </div>
         </div>
 
         <div class="tier-block">
           <div class="head">Smaller Regulated <span class="sum-pill" id="sum_sra">100%</span></div>
           <div class="tier-grid">
-            <div class="tcol"><div class="clbl">T1</div><input type="number" id="sra_t1" min="0" max="100" value="65" /></div>
-            <div class="tcol"><div class="clbl">T2</div><input type="number" id="sra_t2" min="0" max="100" value="30" /></div>
-            <div class="tcol"><div class="clbl">T3</div><input type="number" id="sra_t3" min="0" max="100" value="5" /></div>
+            <div class="tcol"><div class="clbl">T1</div><input type="number" id="sra_t1" min="0" max="100" value="65" aria-label="Smaller Regulated Tier 1 percent" /></div>
+            <div class="tcol"><div class="clbl">T2</div><input type="number" id="sra_t2" min="0" max="100" value="30" aria-label="Smaller Regulated Tier 2 percent" /></div>
+            <div class="tcol"><div class="clbl">T3</div><input type="number" id="sra_t3" min="0" max="100" value="5" aria-label="Smaller Regulated Tier 3 percent" /></div>
           </div>
         </div>
       </div>
 
       <div class="card">
         <h3>Platform Retainer (Annual) <span class="badge">04</span></h3>
-        <div class="retainer-row"><span class="name">Large Law Firm</span><input type="number" id="ret_llf" min="0" step="500" value="35000" /></div>
-        <div class="retainer-row"><span class="name">FRFI</span><input type="number" id="ret_frfi" min="0" step="500" value="18000" /></div>
-        <div class="retainer-row"><span class="name">Smaller Regulated</span><input type="number" id="ret_sra" min="0" step="500" value="8000" /></div>
+        <div class="retainer-row"><span class="name">Large Law Firm</span><input type="number" id="ret_llf" min="0" step="500" value="35000" aria-label="Large Law Firm annual retainer" /></div>
+        <div class="retainer-row"><span class="name">FRFI</span><input type="number" id="ret_frfi" min="0" step="500" value="18000" aria-label="FRFI annual retainer" /></div>
+        <div class="retainer-row"><span class="name">Smaller Regulated</span><input type="number" id="ret_sra" min="0" step="500" value="8000" aria-label="Smaller Regulated annual retainer" /></div>
       </div>
 
       <div class="card">
         <h3>Loaded CAC by Cohort <span class="badge">05</span></h3>
-        <div class="cac-row"><span class="name">Customers 1 to 10<small>founder-led sales</small></span><input type="number" id="cac_a" min="0" step="500" value="22500" /></div>
-        <div class="cac-row"><span class="name">Customers 11 to 100<small>scaled outbound</small></span><input type="number" id="cac_b" min="0" step="500" value="14500" /></div>
-        <div class="cac-row"><span class="name">Customers 101 to 1,000<small>partner-channel</small></span><input type="number" id="cac_c" min="0" step="500" value="6000" /></div>
+        <div class="cac-row"><span class="name">Customers 1 to 10<small>founder-led sales</small></span><input type="number" id="cac_a" min="0" step="500" value="22500" aria-label="Loaded CAC, customers 1 to 10" /></div>
+        <div class="cac-row"><span class="name">Customers 11 to 100<small>scaled outbound</small></span><input type="number" id="cac_b" min="0" step="500" value="14500" aria-label="Loaded CAC, customers 11 to 100" /></div>
+        <div class="cac-row"><span class="name">Customers 101 to 1,000<small>partner-channel</small></span><input type="number" id="cac_c" min="0" step="500" value="6000" aria-label="Loaded CAC, customers 101 to 1,000" /></div>
       </div>
     </div>
 
@@ -1034,7 +1044,7 @@ body.snapshot .snapshot-banner {
       <p><code>cac_payback = loaded_CAC / (avg_contribution / 12)</code>. CAC tiers by total customer count: $22,500 for the first 10, $14,500 for 11 to 100, $6,000 for 101 to 1,000. All three are editable.</p>
 
       <h4>6. Break-even customers</h4>
-      <p><code>break_even = fixed_cost / avg_contribution_per_customer</code>. Operational uses $1.7M, fully loaded uses $2.9M. Both round up to the next integer customer.</p>
+      <p><code>break_even = fixed_cost / avg_contribution_per_customer</code>. Operational uses $1.7M, fully loaded uses $2.9M. Both round up to the next integer customer. Note: break-even is measured against fixed cost only; customer acquisition cost is treated as a separate per-customer investment and surfaced through CAC payback rather than added to the break-even denominator.</p>
 
       <h4>7. Scale chart</h4>
       <p>The 10 / 100 / 1,000 ARR chart recomputes total ARR under the current mix, tier, retainer, and discount assumptions at each of those customer counts. The line is intentionally linear at constant mix; in practice the mix would shift toward smaller accounts at higher scale.</p>
@@ -1184,8 +1194,15 @@ function chartColors() {
   };
 }
 
-let segChart, scaleChart;
+let segChart, scaleChart, chartsAvailable = true;
 function buildCharts() {
+  if (typeof Chart === "undefined") {
+    chartsAvailable = false;
+    document.querySelectorAll(".chart-wrap").forEach(w => {
+      w.innerHTML = '<div style="display:grid;place-items:center;height:100%;color:var(--muted);font-size:12px;text-align:center;padding:0 12px;">Chart library unavailable.<br>The numbers above and the table below are still accurate.</div>';
+    });
+    return;
+  }
   const c = chartColors();
   const common = {
     responsive: true, maintainAspectRatio: false,
@@ -1279,14 +1296,16 @@ function render() {
   $("kpi_cac_sub").textContent = `loaded CAC: ${fmt["$"](r.cac)}`;
 
   // Charts.
-  segChart.data.datasets[0].data = r.segments.map(s => s.segARR);
-  segChart.update("active");
-  scaleChart.data.datasets[0].data = [
-    compute(state, 10).totalARR,
-    compute(state, 100).totalARR,
-    compute(state, 1000).totalARR
-  ];
-  scaleChart.update("active");
+  if (chartsAvailable && segChart && scaleChart) {
+    segChart.data.datasets[0].data = r.segments.map(s => s.segARR);
+    segChart.update("active");
+    scaleChart.data.datasets[0].data = [
+      compute(state, 10).totalARR,
+      compute(state, 100).totalARR,
+      compute(state, 1000).totalARR
+    ];
+    scaleChart.update("active");
+  }
 
   // Table.
   const tbody = document.querySelector("#resultsTable tbody");
@@ -1295,7 +1314,7 @@ function render() {
     tbody.insertAdjacentHTML("beforeend", `
       <tr>
         <td>${s.name}</td>
-        <td>${s.count.toFixed(1)}</td>
+        <td>${Math.round(s.count).toLocaleString()}</td>
         <td>${fmt["$"](s.perCustomerRev)}</td>
         <td>${fmt["$"](s.perCustomerCost)}</td>
         <td>${fmt["$"](s.perCustomerContrib)}</td>
@@ -1355,8 +1374,20 @@ const SCENARIOS = {
   }
 };
 
+let currentScenario = "base";
+
+// Called when the user edits any input by hand: the model no longer matches a
+// preset, so deselect the scenario chips and label captures as "Custom".
+function markCustom() {
+  if (currentScenario === null) return;
+  currentScenario = null;
+  document.querySelectorAll(".scenario-btn").forEach(b => b.classList.remove("active"));
+  $("snapshotScenarioLabel").textContent = "Custom";
+}
+
 function applyScenario(key) {
   const s = SCENARIOS[key]; if (!s) return;
+  currentScenario = key;
   $("custSlider").value = s.customers;
   $("discSlider").value = s.discount;
   $("mixLLF").value  = s.mix.llf;
@@ -1432,10 +1463,7 @@ function loadHtml2Canvas() {
 }
 
 function activeScenarioLabel() {
-  const a = document.querySelector(".scenario-btn.active");
-  if (!a) return "Custom";
-  // Strip the trailing kbd number from the button text.
-  return a.textContent.replace(/\d+\s*$/, "").trim() + " Case";
+  return currentScenario ? SCENARIOS[currentScenario].label : "Custom";
 }
 
 async function copySnapshot() {
@@ -1548,9 +1576,10 @@ async function copySnapshot() {
 
 /* ============ Wiring ============ */
 function wireUp() {
+  const onUserEdit = () => { markCustom(); render(); };
   document.querySelectorAll("input").forEach(el => {
-    el.addEventListener("input",  render);
-    el.addEventListener("change", render);
+    el.addEventListener("input",  onUserEdit);
+    el.addEventListener("change", onUserEdit);
   });
   document.querySelectorAll(".scenario-btn").forEach(b => {
     b.addEventListener("click", () => applyScenario(b.dataset.scenario));
@@ -1582,9 +1611,11 @@ function wireUp() {
 /* ============ Init ============ */
 function init() {
   initTheme();
-  buildCharts();
-  wireUp();
-  render();
+  // Each step is guarded so a failure (e.g. charts library blocked offline)
+  // can never leave the page stuck behind the loading veil.
+  try { buildCharts(); } catch (e) { console.error("Chart init failed:", e); }
+  try { wireUp(); }     catch (e) { console.error("Wire-up failed:", e); }
+  try { render(); }     catch (e) { console.error("Render failed:", e); }
   // Reveal page once first paint is done.
   requestAnimationFrame(() => requestAnimationFrame(() => {
     document.body.classList.add("loaded");
