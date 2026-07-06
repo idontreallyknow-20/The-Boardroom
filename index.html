@@ -4,189 +4,187 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>TrustLayer Pricing Simulator | Nortam, The Boardroom 2026</title>
-<meta name="description" content="Interactive sensitivity model for Nortam TrustLayer. Test how customer mix, discounting, and tier usage assumptions move ARR, gross margin, CAC payback, and break-even." />
-<meta name="theme-color" content="#0b0d12" />
+<meta name="description" content="Live sensitivity model for Nortam TrustLayer. Test how customer mix, discounting, and tier usage assumptions move ARR, gross margin, CAC payback, and break-even." />
+<meta name="theme-color" content="#070b13" />
+<meta name="color-scheme" content="dark" />
 
 <!-- Open Graph / link preview -->
 <meta property="og:type" content="website" />
 <meta property="og:title" content="TrustLayer Pricing Simulator" />
-<meta property="og:description" content="Interactive sensitivity model. Drag a slider, watch ARR, margin, CAC payback, and break-even update live." />
+<meta property="og:description" content="Live sensitivity model. Drag a slider, watch ARR, margin, CAC payback, and break-even update in real time." />
 <meta property="og:site_name" content="Nortam TrustLayer" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="TrustLayer Pricing Simulator" />
 <meta name="twitter:description" content="Sensitivity model for TrustLayer ARR, margin, CAC payback, and break-even." />
 
-<!-- Inline SVG favicon, neutral gold square with T -->
-<link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%230b0d12"/><path d="M16 22h32v6H36v22h-8V28H16z" fill="%23c9a227"/></svg>' />
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Inline SVG favicon, gold T on near-black -->
+<link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%23070b13"/><path d="M16 22h32v6H36v22h-8V28H16z" fill="%23e5b64b"/></svg>' />
 
 <style>
 /* =============================================================
    TrustLayer Pricing Simulator
-   Single-file static page. Vercel ready.
+   Single-file static build. No CDN, no backend, works offline.
+   Dark, projector-first theme. One gold accent.
    ============================================================= */
 
 :root {
-  --bg:        #ffffff;
-  --bg-soft:   #fafbfc;
-  --bg-elev:   #ffffff;
-  --ink:       #0a0c10;
-  --ink-2:     #2a2f3a;
-  --muted:     #6b7280;
-  --muted-2:   #a1a7b3;
-  --line:      #ececf0;
-  --line-2:    #f2f3f6;
-  --card:      #ffffff;
-  --hover:     #f5f6f8;
-  --accent:    #a07908;
-  --accent-2:  #c9a227;
-  --accent-soft:#f4e8b8;
-  --accent-bg: #fdf8e3;
-  --success:   #16a34a;
-  --warn:      #b45309;
-  --shadow-sm: 0 1px 2px rgba(11,13,18,0.03);
-  --shadow-md: 0 8px 24px rgba(11,13,18,0.06);
-  --radius:    0;
-  --radius-sm: 0;
-  --tween:     180ms cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-[data-theme="dark"] {
-  --bg:        #0b0d12;
-  --bg-soft:   #0f1218;
-  --bg-elev:   #11141a;
-  --ink:       #f3f4f7;
-  --ink-2:     #d1d5db;
-  --muted:     #9ca3af;
-  --muted-2:   #6b7280;
-  --line:      #1f242e;
-  --line-2:    #161b23;
-  --card:      #11141a;
-  --hover:     #161b23;
-  --accent:    #e3b820;
-  --accent-2:  #f1c83a;
-  --accent-soft:#3a2f10;
-  --accent-bg: #1f1908;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 24px rgba(0,0,0,0.4);
+  --bg:       #070b13;
+  --bg-soft:  #0b111d;
+  --card:     #0e1523;
+  --card-2:   #121a2b;
+  --line:     #1f2b43;
+  --line-2:   #182131;
+  --ink:      #f4f7fc;
+  --ink-2:    #ccd6e8;
+  --muted:    #9aa8c4;
+  --muted-2:  #8291ad;
+  --gold:     #e5b64b;
+  --gold-dim: rgba(229,182,75,0.14);
+  --success:  #57d98a;
+  --bar:      #35476b;
+  --maxw:     1360px;
+  --pad-x:    32px;
+  --trackh:   232px;
+  --tween:    180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  --count:    400ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 html, body { margin: 0; padding: 0; }
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background: var(--bg);
   color: var(--ink);
   line-height: 1.5;
+  font-size: 15px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: "cv11", "ss01", "ss03";
-  transition: background var(--tween), color var(--tween);
+  overflow-x: hidden;
 }
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
-.mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+.mono, .num, .val, .kbd, .bar-val {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 /* =============== Nav =============== */
 .nav {
   position: sticky; top: 0; z-index: 50;
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
-  backdrop-filter: saturate(180%) blur(10px);
-  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  background: rgba(7,11,19,0.92);
+  backdrop-filter: saturate(160%) blur(10px);
+  -webkit-backdrop-filter: saturate(160%) blur(10px);
   border-bottom: 1px solid var(--line);
 }
 .nav-inner {
-  max-width: 1320px; margin: 0 auto;
-  padding: 14px 32px;
+  max-width: var(--maxw); margin: 0 auto;
+  padding: 14px var(--pad-x);
   display: flex; align-items: center; justify-content: space-between;
   gap: 24px;
 }
-.nav-brand {
+.brand {
   display: flex; align-items: center; gap: 10px;
-  font-weight: 700; font-size: 15px; letter-spacing: -0.01em; color: var(--ink);
+  font-weight: 700; font-size: 16px; letter-spacing: -0.01em; color: var(--ink);
+  white-space: nowrap;
 }
-.nav-brand .logo {
-  width: 24px; height: 24px; border-radius: 0;
-  background: var(--ink); color: var(--accent-2);
+.brand .logo {
+  width: 26px; height: 26px;
+  background: var(--gold); color: #070b13;
   display: grid; place-items: center;
-  font-weight: 700; font-size: 13px; line-height: 1;
-  letter-spacing: -0.02em;
+  font-weight: 800; font-size: 15px; line-height: 1;
 }
-.nav-brand .sep { color: var(--muted-2); font-weight: 400; margin: 0 2px; }
-.nav-brand .sub { color: var(--muted); font-weight: 500; }
-.nav-links {
-  display: flex; gap: 4px; align-items: center; font-size: 13px; font-weight: 500;
-}
-.nav-links a {
-  color: var(--muted); padding: 6px 10px; border-radius: 0;
-  transition: color var(--tween), background var(--tween);
-}
-.nav-links a:hover { color: var(--ink); background: var(--hover); }
+.brand .sep { color: var(--muted-2); font-weight: 400; margin: 0 2px; }
+.brand .sub { color: var(--muted); font-weight: 500; }
+.nav-links { display: flex; gap: 4px; align-items: center; font-size: 14px; font-weight: 500; }
+.nav-links a { color: var(--muted); padding: 6px 12px; transition: color var(--tween), background var(--tween); }
+.nav-links a:hover { color: var(--ink); background: var(--card-2); }
 .nav-actions { display: flex; gap: 8px; align-items: center; }
 
 /* =============== Buttons =============== */
 .btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 12px; border-radius: 0;
-  font-size: 13px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px;
+  font-size: 14px; font-weight: 600;
   border: 1px solid var(--line); background: var(--card); color: var(--ink);
-  transition: background var(--tween), border-color var(--tween), transform 80ms ease;
+  transition: background var(--tween), border-color var(--tween);
   white-space: nowrap;
 }
-.btn:hover { background: var(--hover); }
-.btn:active { transform: translateY(0.5px); }
-.btn-primary {
-  background: var(--ink); color: var(--bg); border-color: var(--ink);
-}
-.btn-primary:hover { background: var(--ink-2); }
+.btn:hover { background: var(--card-2); border-color: var(--muted-2); }
+.btn-primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn-primary:hover { background: var(--ink-2); border-color: var(--ink-2); }
 .btn-ghost { border-color: transparent; background: transparent; color: var(--muted); }
-.btn-ghost:hover { color: var(--ink); background: var(--hover); }
-.btn-accent {
-  background: var(--accent-bg); color: var(--accent); border-color: var(--accent-soft);
+.btn-ghost:hover { color: var(--ink); background: var(--card-2); }
+.kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px; font-weight: 600; padding: 1px 6px;
+  border: 1px solid var(--line); color: var(--muted); background: var(--bg-soft);
 }
-.btn .kbd {
-  margin-left: 6px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px; padding: 1px 5px;
-  border: 1px solid var(--line); border-radius: 0;
-  color: var(--muted); background: var(--bg-soft);
-}
-.icon-btn {
-  width: 32px; height: 32px; display: grid; place-items: center;
-  border-radius: 0; border: 1px solid var(--line); background: var(--card);
-  color: var(--muted); transition: all var(--tween);
-}
-.icon-btn:hover { color: var(--ink); background: var(--hover); }
-.icon-btn svg { width: 16px; height: 16px; }
+.btn-primary .kbd { border-color: rgba(7,11,19,0.3); color: rgba(7,11,19,0.75); background: rgba(7,11,19,0.08); }
 
 /* =============== Hero =============== */
 .hero {
-  max-width: 1320px; margin: 0 auto;
-  padding: 56px 32px 32px;
+  max-width: var(--maxw); margin: 0 auto;
+  padding: 48px var(--pad-x) 8px;
 }
 .eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.16em;
   color: var(--muted); text-transform: uppercase;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
-.eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 0 4px var(--accent-bg); }
+.eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 4px var(--gold-dim); }
 .hero h1 {
-  margin: 0 0 14px;
-  font-size: clamp(36px, 4.4vw, 56px);
-  font-weight: 700; letter-spacing: -0.025em; line-height: 1.02;
+  margin: 0 0 12px;
+  font-size: clamp(38px, 4.2vw, 58px);
+  font-weight: 750; letter-spacing: -0.025em; line-height: 1.03;
   color: var(--ink);
 }
-.hero h1 .accent { color: var(--accent); font-style: italic; font-weight: 600; }
-.hero .subtitle {
-  font-size: 16px; color: var(--muted);
-  max-width: 640px; margin: 0 0 28px;
-  line-height: 1.55;
+.hero .what {
+  font-size: clamp(17px, 1.4vw, 20px); color: var(--ink-2);
+  max-width: 860px; margin: 0 0 24px; line-height: 1.5; font-weight: 500;
 }
+.facts {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin-bottom: 24px; max-width: 1020px;
+}
+.fact {
+  border-left: 3px solid var(--line);
+  padding: 4px 0 4px 16px;
+}
+.fact.why { border-left-color: var(--gold); }
+.fact h4 {
+  margin: 0 0 4px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted);
+}
+.fact p { margin: 0; font-size: 15px; color: var(--ink-2); line-height: 1.5; }
+.fact p strong { color: var(--ink); font-weight: 650; }
+
+/* =============== Tier strip =============== */
+.tier-strip {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+  margin: 0 0 14px;
+}
+.tier-card {
+  background: var(--card); border: 1px solid var(--line);
+  padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.tier-card .t-name {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.tier-card .t-name .t-gm { color: var(--success); letter-spacing: 0.02em; font-size: 13px; }
+.tier-card .t-price { font-size: clamp(24px, 2vw, 30px); font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+.tier-card .t-price small { font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.tier-card .t-cost { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.market-line {
+  font-size: 13px; color: var(--muted); margin: 0 0 20px; line-height: 1.6;
+}
+.market-line strong { color: var(--ink-2); font-weight: 650; }
 
 /* =============== Scenario bar =============== */
 .scenarios {
@@ -194,265 +192,222 @@ button { font-family: inherit; cursor: pointer; }
   padding: 6px;
   background: var(--bg-soft);
   border: 1px solid var(--line);
-  border-radius: 0;
-  width: fit-content;
-  max-width: 100%;
+  width: fit-content; max-width: 100%;
 }
 .scenarios .label {
-  font-size: 11px; font-weight: 600; color: var(--muted);
+  font-size: 12px; font-weight: 700; color: var(--muted);
   text-transform: uppercase; letter-spacing: 0.1em;
   padding: 0 10px 0 8px;
 }
 .scenario-btn {
-  padding: 7px 12px; border-radius: 0;
-  font-size: 13px; font-weight: 500;
+  padding: 8px 13px;
+  font-size: 14px; font-weight: 600;
   background: transparent; color: var(--ink-2);
   border: 1px solid transparent;
-  display: inline-flex; align-items: center; gap: 6px;
-  transition: all var(--tween);
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: background var(--tween), color var(--tween), border-color var(--tween);
 }
-.scenario-btn:hover { background: var(--card); border-color: var(--line); }
-.scenario-btn.active {
-  background: var(--ink); color: var(--bg); border-color: var(--ink);
-  box-shadow: 0 1px 3px rgba(11,13,18,0.15);
-}
-.scenario-btn.active .kbd { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); color: rgba(255,255,255,0.75); }
+.scenario-btn:hover { background: var(--card-2); border-color: var(--line); }
+.scenario-btn.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.scenario-btn.active .kbd { background: rgba(7,11,19,0.08); border-color: rgba(7,11,19,0.3); color: rgba(7,11,19,0.75); }
 
-/* =============== KPI strip (the hero) =============== */
+/* =============== Presentation bar =============== */
+.present-bar {
+  display: none;
+  position: sticky; top: 0; z-index: 60;
+  background: rgba(7,11,19,0.95);
+  border-bottom: 1px solid var(--line);
+  padding: 12px var(--pad-x);
+  align-items: center; justify-content: space-between; gap: 20px;
+}
+body.present .present-bar { display: flex; }
+.present-bar .hints { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+
+/* =============== KPI strip =============== */
 .kpi-strip {
-  max-width: 1320px; margin: 28px auto 0;
-  padding: 0 32px;
+  max-width: var(--maxw); margin: 24px auto 0;
+  padding: 0 var(--pad-x);
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
   gap: 12px;
 }
 .kpi {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 0;
-  padding: 18px 20px;
+  padding: 18px 22px;
   position: relative;
-  transition: border-color var(--tween), box-shadow var(--tween), transform var(--tween);
 }
-.kpi:hover { border-color: var(--muted-2); box-shadow: var(--shadow-sm); }
 .kpi .lbl {
-  font-size: 11px; font-weight: 500;
-  letter-spacing: 0.04em;
+  font-size: 13px; font-weight: 650;
+  letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--muted);
-  display: flex; align-items: center; gap: 6px;
-  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 7px;
+  margin-bottom: 10px;
 }
 .kpi .num {
-  font-size: 24px; font-weight: 600;
-  letter-spacing: -0.025em; line-height: 1.05;
+  font-size: clamp(28px, 2.2vw, 36px); font-weight: 700;
+  letter-spacing: -0.02em; line-height: 1.05;
   color: var(--ink);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
 }
-.kpi .hint {
-  font-size: 11px; color: var(--muted-2); margin-top: 6px;
-  font-variant-numeric: tabular-nums;
-}
+.kpi .hint { font-size: 13px; color: var(--muted); margin-top: 8px; }
 .kpi.accent {
   grid-row: span 2;
-  background: linear-gradient(160deg, var(--ink) 0%, #161922 100%);
-  border-color: var(--ink);
-  padding: 22px 24px;
+  background: var(--card-2);
+  border-color: var(--line);
+  padding: 24px 26px;
   display: flex; flex-direction: column; justify-content: space-between;
-  min-height: 168px;
+  min-height: 190px;
 }
-.kpi.accent .lbl { color: rgba(255,255,255,0.55); }
-.kpi.accent .lbl .info { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.65); }
-.kpi.accent .lbl .info:hover { background: var(--accent-2); border-color: var(--accent-2); color: var(--ink); }
 .kpi.accent .num {
-  font-size: 56px; font-weight: 600; letter-spacing: -0.035em;
-  color: #fff;
-  display: flex; align-items: baseline; gap: 8px;
+  font-size: clamp(56px, 4.6vw, 76px);
+  font-weight: 750; letter-spacing: -0.03em;
+  color: var(--gold);
 }
-.kpi.accent .hint { color: rgba(255,255,255,0.55); }
 .kpi.accent::after {
-  content: ""; position: absolute; bottom: 0; left: 0; width: 56px; height: 3px;
-  background: var(--accent-2); border-radius: 0;
+  content: ""; position: absolute; bottom: 0; left: 0; width: 64px; height: 3px;
+  background: var(--gold);
 }
-[data-theme="dark"] .kpi.accent { background: linear-gradient(160deg, #1a1f2a 0%, #11141a 100%); }
 
 /* =============== Layout =============== */
 .section {
-  max-width: 1320px; margin: 0 auto;
-  padding: 48px 32px 8px;
+  max-width: var(--maxw); margin: 0 auto;
+  padding: 44px var(--pad-x) 8px;
+  scroll-margin-top: 64px;
 }
 .section-head { margin-bottom: 20px; display: flex; align-items: baseline; gap: 16px; }
 .section-num {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px; color: var(--muted-2); font-weight: 500;
-  letter-spacing: 0.02em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px; color: var(--muted-2); font-weight: 600;
 }
-.section-title {
-  font-size: 22px; font-weight: 600; letter-spacing: -0.02em;
-  color: var(--ink); margin: 0 0 4px;
-}
-.section-head-text { flex: 1; }
-.section-lede {
-  font-size: 13px; color: var(--muted); margin: 0; max-width: 640px; line-height: 1.5;
-}
+.section-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); margin: 0 0 4px; }
+.section-lede { font-size: 14px; color: var(--muted); margin: 0; max-width: 680px; line-height: 1.5; }
 .grid {
   display: grid; grid-template-columns: 360px 1fr;
   gap: 20px; align-items: start;
 }
 body.snapshot .grid { grid-template-columns: 1fr; }
 body.snapshot .inputs-col { display: none; }
-body.snapshot .snapshot-only { display: block; }
-.snapshot-only { display: none; }
 
-/* =============== Cards =============== */
+/* =============== Cards / inputs =============== */
 .card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--card); border: 1px solid var(--line);
   padding: 18px 20px;
-  transition: background var(--tween), border-color var(--tween);
 }
 .card + .card { margin-top: 12px; }
 .card h3 {
   margin: 0 0 16px;
-  font-size: 13px; font-weight: 600;
-  color: var(--ink); display: flex; align-items: center; justify-content: space-between;
-  letter-spacing: -0.005em;
+  font-size: 14px; font-weight: 700; color: var(--ink);
+  display: flex; align-items: center; justify-content: space-between;
 }
 .card h3 .badge {
-  font-size: 10px; font-weight: 500;
-  padding: 2px 7px; border-radius: 0;
-  background: transparent; color: var(--muted-2);
-  letter-spacing: 0.04em;
-  font-variant-numeric: tabular-nums;
+  font-size: 11px; font-weight: 600; color: var(--muted-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 .row { margin-bottom: 16px; }
 .row:last-child { margin-bottom: 0; }
 .row label {
   display: flex; justify-content: space-between; align-items: center;
-  font-size: 13px; font-weight: 500; color: var(--ink-2);
+  font-size: 14px; font-weight: 550; color: var(--ink-2);
   margin-bottom: 8px;
 }
 .row label .lbl-text { display: inline-flex; align-items: center; gap: 6px; }
 .row label .val {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600; color: var(--ink);
-  padding: 1px 8px; border-radius: 0;
-  background: var(--bg-soft);
-  font-size: 12px;
+  font-weight: 700; color: var(--ink);
+  padding: 2px 9px; background: var(--bg-soft);
+  font-size: 13px;
 }
-.row .sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.row .sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
-/* =============== Inputs =============== */
 input[type=range] {
-  width: 100%; height: 24px;
+  width: 100%; height: 26px;
   appearance: none; -webkit-appearance: none;
   background: transparent;
 }
-input[type=range]::-webkit-slider-runnable-track {
-  height: 4px; border-radius: 0;
-  background: var(--line);
-}
+input[type=range]::-webkit-slider-runnable-track { height: 4px; background: var(--line); }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
-  width: 16px; height: 16px; border-radius: 50%;
+  width: 18px; height: 18px; border-radius: 50%;
   background: var(--ink); border: 2px solid var(--bg);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  margin-top: -6px; cursor: pointer;
+  margin-top: -7px; cursor: pointer;
   transition: transform 100ms ease;
 }
 input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
-input[type=range]::-moz-range-track {
-  height: 4px; border-radius: 0; background: var(--line);
-}
+input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--gold); }
+input[type=range]::-moz-range-track { height: 4px; background: var(--line); }
 input[type=range]::-moz-range-thumb {
-  width: 16px; height: 16px; border-radius: 50%;
-  background: var(--ink); border: 2px solid var(--bg);
-  cursor: pointer;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--ink); border: 2px solid var(--bg); cursor: pointer;
 }
+input[type=range]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--gold); }
 input[type=number] {
-  padding: 6px 10px; border: 1px solid var(--line); border-radius: 0;
-  font-size: 13px; font-variant-numeric: tabular-nums; font-family: inherit;
-  color: var(--ink); background: var(--card);
+  padding: 7px 10px; border: 1px solid var(--line);
+  font-size: 14px; font-family: inherit; font-variant-numeric: tabular-nums;
+  color: var(--ink); background: var(--bg-soft);
   width: 100%;
-  transition: border-color var(--tween), box-shadow var(--tween);
+  transition: border-color var(--tween);
 }
-input[type=number]:focus {
-  outline: none; border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-bg);
-}
+input[type=number]:focus { outline: none; border-color: var(--gold); }
 
 .mix-row {
   display: grid; grid-template-columns: 1fr 84px;
   gap: 10px; align-items: center; margin-bottom: 8px;
-  font-size: 13px;
+  font-size: 14px;
 }
-.mix-row .name { color: var(--ink-2); font-weight: 500; }
-.mix-status {
-  margin-top: 8px; display: flex; align-items: center; gap: 8px;
-  font-size: 12px;
-}
+.mix-row .name { color: var(--ink-2); font-weight: 550; }
+.mix-status { margin-top: 8px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
 .mix-status .pill {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 8px; border-radius: 0;
-  font-weight: 600; font-variant-numeric: tabular-nums;
+  padding: 3px 8px; font-weight: 650;
   background: var(--bg-soft); color: var(--muted);
 }
-.mix-status .pill.ok { background: rgba(22,163,74,0.08); color: var(--success); }
-.mix-status .pill.warn { background: var(--accent-bg); color: var(--warn); }
+.mix-status .pill.ok { background: rgba(87,217,138,0.1); color: var(--success); }
+.mix-status .pill.warn { background: var(--gold-dim); color: var(--gold); }
 .mix-status .pill svg { width: 12px; height: 12px; }
 
 .tier-block {
-  background: var(--bg-soft);
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  margin-bottom: 10px;
+  background: var(--bg-soft); border: 1px solid var(--line-2);
+  padding: 12px 14px; margin-bottom: 10px;
 }
 .tier-block:last-child { margin-bottom: 0; }
 .tier-block .head {
-  font-size: 12px; font-weight: 600; color: var(--ink-2);
+  font-size: 13px; font-weight: 650; color: var(--ink-2);
   margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
 }
 .tier-block .head .sum-pill {
-  font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 0;
-  font-variant-numeric: tabular-nums;
+  font-size: 11px; font-weight: 650; padding: 2px 7px;
   background: var(--card); color: var(--muted);
   border: 1px solid var(--line);
 }
-.tier-block .head .sum-pill.ok { color: var(--success); border-color: rgba(22,163,74,0.3); }
-.tier-block .head .sum-pill.warn { color: var(--warn); border-color: var(--accent-soft); background: var(--accent-bg); }
-.tier-grid {
-  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
-}
+.tier-block .head .sum-pill.ok { color: var(--success); border-color: rgba(87,217,138,0.35); }
+.tier-block .head .sum-pill.warn { color: var(--gold); border-color: var(--gold); background: var(--gold-dim); }
+.tier-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
 .tier-grid .tcol { text-align: center; }
 .tier-grid .tcol .clbl {
-  font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;
-  margin-bottom: 4px; font-weight: 600;
+  font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 4px; font-weight: 700;
 }
-.tier-grid .tcol input { text-align: center; padding: 5px 4px; font-size: 12px; }
+.tier-grid .tcol input { text-align: center; padding: 6px 4px; font-size: 13px; }
 
 .retainer-row, .cac-row {
   display: grid; grid-template-columns: 1fr 110px;
   align-items: center; gap: 10px;
-  margin-bottom: 10px; font-size: 13px;
+  margin-bottom: 10px; font-size: 14px;
 }
 .retainer-row:last-of-type, .cac-row:last-of-type { margin-bottom: 0; }
-.retainer-row .name, .cac-row .name { color: var(--ink-2); font-weight: 500; }
-.cac-row .name small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
+.retainer-row .name, .cac-row .name { color: var(--ink-2); font-weight: 550; }
+.cac-row .name small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
 
 /* =============== Tooltips =============== */
 .info {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 13px; height: 13px; border-radius: 50%;
-  background: transparent; color: var(--muted-2);
-  font-size: 9px; font-weight: 600;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: transparent; color: var(--muted);
+  font-size: 10px; font-weight: 700;
   cursor: help; position: relative;
   border: 1px solid var(--line);
-  transition: all var(--tween);
-  font-family: "JetBrains Mono", monospace;
-  font-style: normal;
-  text-transform: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-style: normal; text-transform: none;
+  letter-spacing: 0;
 }
 .info:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .info::after {
@@ -460,59 +415,84 @@ input[type=number]:focus {
   position: absolute; bottom: calc(100% + 8px); left: 50%;
   transform: translateX(-50%);
   background: var(--ink); color: var(--bg);
-  padding: 8px 10px; border-radius: 0;
-  font-size: 11px; font-weight: 400; line-height: 1.4;
-  white-space: normal; width: 220px;
+  padding: 9px 11px;
+  font-size: 12px; font-weight: 500; line-height: 1.45;
+  white-space: normal; width: 230px;
   text-transform: none; letter-spacing: normal;
-  opacity: 0; pointer-events: none;
-  transition: opacity var(--tween);
-  z-index: 100;
-  box-shadow: var(--shadow-md);
-  text-align: left;
+  display: none; pointer-events: none;
+  z-index: 100; text-align: left;
 }
-.info:hover::after { opacity: 1; }
+.info:hover::after, .info:focus-visible::after { display: block; }
 
-/* =============== Charts =============== */
-.charts {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-}
+/* =============== Charts (pure HTML/CSS bars) =============== */
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .chart-card {
   background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--radius); padding: 20px 22px;
+  padding: 20px 22px;
 }
-.chart-card h3 {
-  margin: 0 0 2px; font-size: 13px; font-weight: 600; color: var(--ink);
-  letter-spacing: -0.005em;
+.chart-card h3 { margin: 0 0 3px; font-size: 16px; font-weight: 700; color: var(--ink); }
+.chart-card .chart-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.bars {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px;
+  align-items: start; /* tracks share a fixed height, so baselines align even when labels wrap */
 }
-.chart-card .chart-sub {
-  font-size: 12px; color: var(--muted); margin-bottom: 18px;
+.bar-col { display: flex; flex-direction: column; }
+.bar-track {
+  position: relative; height: var(--trackh);
+  border-bottom: 2px solid var(--line);
+  background: linear-gradient(to top, var(--bg-soft), transparent 60%);
 }
-.chart-wrap { position: relative; height: 220px; }
+.bar-fill {
+  position: absolute; bottom: 0; left: 12%; width: 76%;
+  background: var(--bar);
+  transition: height var(--count), background var(--tween);
+}
+.bar-fill.gold { background: var(--gold); }
+.bar-val {
+  position: absolute; left: 0; width: 100%;
+  text-align: center;
+  font-size: 18px; font-weight: 700; color: var(--ink);
+  letter-spacing: -0.01em;
+  transition: bottom var(--count);
+  line-height: 1;
+}
+.bar-lbl {
+  margin-top: 10px; text-align: center;
+  font-size: 14px; font-weight: 600; color: var(--ink-2);
+  line-height: 1.3;
+}
+.bar-tag {
+  margin-top: 3px; text-align: center;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gold);
+  visibility: hidden;
+}
+.axis-note { margin-top: 12px; font-size: 12px; color: var(--muted-2); text-align: center; }
 
 /* =============== Tables =============== */
 .table-card {
   background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--radius); padding: 20px 22px;
-  margin-top: 12px;
+  padding: 20px 22px; margin-top: 12px;
 }
-.table-card h3 { margin: 0 0 2px; font-size: 13px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em; }
-.table-card .chart-sub { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-card h3 { margin: 0 0 3px; font-size: 16px; font-weight: 700; color: var(--ink); }
+.table-card .chart-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td {
-  padding: 12px 14px; text-align: right;
+  padding: 11px 14px; text-align: right;
   border-bottom: 1px solid var(--line-2);
   font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
 }
+td:first-child { color: var(--ink); font-weight: 550; }
 th:first-child, td:first-child { text-align: left; }
 thead th {
-  font-size: 11px; font-weight: 500;
-  letter-spacing: 0.02em;
+  font-size: 12px; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase;
   color: var(--muted); background: var(--bg-soft);
   border-bottom: 1px solid var(--line);
   padding: 10px 14px;
 }
 tfoot td {
-  font-weight: 600; color: var(--ink);
+  font-weight: 700; color: var(--ink);
   background: var(--bg-soft); border-top: 1px solid var(--line);
   border-bottom: none;
 }
@@ -520,24 +500,22 @@ tfoot td {
 /* =============== Assumptions / methodology / narrative =============== */
 .assumption-table {
   background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--radius); overflow: hidden;
+  overflow: hidden;
 }
 .assumption-table h3 {
-  margin: 0; padding: 16px 20px; font-size: 13px; font-weight: 600;
-  border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;
-  letter-spacing: -0.005em;
+  margin: 0; padding: 16px 20px; font-size: 14px; font-weight: 700;
+  border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
 }
-.assumption-table h3 .src { font-size: 11px; font-weight: 400; color: var(--muted-2); }
-.assumption-table table { font-size: 13px; }
+.assumption-table h3 .src { font-size: 12px; font-weight: 400; color: var(--muted-2); }
 .assumption-table thead th { background: transparent; }
 
 details.method {
   background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--radius); margin-top: 16px;
-  overflow: hidden;
+  margin-top: 16px; overflow: hidden;
 }
 details.method summary {
-  padding: 14px 20px; cursor: pointer; font-weight: 600; font-size: 14px;
+  padding: 14px 20px; cursor: pointer; font-weight: 650; font-size: 15px;
   list-style: none; display: flex; justify-content: space-between; align-items: center;
   user-select: none;
 }
@@ -550,143 +528,138 @@ details.method summary::after {
 details.method[open] summary::after { transform: rotate(-135deg); }
 details.method .method-body {
   padding: 0 20px 20px;
-  font-size: 13px; color: var(--ink-2); line-height: 1.65;
+  font-size: 14px; color: var(--ink-2); line-height: 1.65;
   border-top: 1px solid var(--line-2);
 }
-details.method .method-body h4 {
-  font-size: 12px; font-weight: 600; color: var(--ink);
-  margin: 16px 0 6px; letter-spacing: 0.02em;
-}
+details.method .method-body h4 { font-size: 13px; font-weight: 700; color: var(--ink); margin: 16px 0 6px; }
 details.method .method-body code {
-  font-family: "JetBrains Mono", monospace; font-size: 12px;
-  background: var(--bg-soft); padding: 1px 6px; border-radius: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+  background: var(--bg-soft); padding: 1px 6px;
   border: 1px solid var(--line-2); color: var(--ink-2);
 }
 
-.narrative {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;
-}
+.narrative { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 .nbox {
   background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--radius); padding: 18px 20px;
-  position: relative;
+  padding: 18px 20px; position: relative;
 }
 .nbox::before {
   content: ""; position: absolute; top: 18px; left: 0; width: 3px; height: 24px;
-  background: var(--accent); border-radius: 0;
+  background: var(--gold);
 }
 .nbox h4 {
-  font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--muted); margin: 0 0 8px;
 }
-.nbox p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+.nbox p { margin: 0; font-size: 14px; color: var(--ink-2); line-height: 1.55; }
 
 /* =============== Footer =============== */
 footer {
-  max-width: 1320px; margin: 48px auto 0;
-  padding: 28px 32px; border-top: 1px solid var(--line);
-  font-size: 12px; color: var(--muted);
+  max-width: var(--maxw); margin: 48px auto 0;
+  padding: 28px var(--pad-x); border-top: 1px solid var(--line);
+  font-size: 13px; color: var(--muted);
   display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
 }
 
-/* =============== Number tween =============== */
-.tween { transition: color var(--tween); }
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.04); } 100% { transform: scale(1); } }
-.pulse { animation: pulse 220ms ease; }
-
-/* =============== Loading =============== */
-.loading-veil {
-  position: fixed; inset: 0; z-index: 200;
-  background: var(--bg);
-  display: grid; place-items: center;
-  transition: opacity 280ms ease;
+/* =============== Snapshot banner / toast =============== */
+.snapshot-banner {
+  display: none;
+  max-width: calc(var(--maxw) - 2 * var(--pad-x));
+  margin: 16px auto 0;
+  padding: 10px 16px;
+  background: var(--gold-dim); border: 1px solid var(--gold);
+  color: var(--gold);
+  font-size: 13px; font-weight: 550; align-items: center; gap: 10px;
 }
-.loading-veil .spin {
-  width: 28px; height: 28px;
-  border: 2px solid var(--line);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: rot 0.7s linear infinite;
-}
-@keyframes rot { to { transform: rotate(360deg); } }
-.loaded .loading-veil { opacity: 0; pointer-events: none; }
+body.snapshot .snapshot-banner { display: flex; }
+body.snapshot .nav-links a[href="#assumptions"],
+body.snapshot .nav-links a[href="#methodology"] { display: none; }
 
-/* =============== Toast =============== */
 .toast {
   position: fixed; bottom: 24px; left: 50%;
   transform: translateX(-50%) translateY(12px);
   background: var(--ink); color: var(--bg);
   padding: 12px 18px;
-  font-size: 13px; font-weight: 500;
-  border: 1px solid var(--ink);
+  font-size: 14px; font-weight: 550;
   opacity: 0; pointer-events: none;
   transition: opacity 200ms ease, transform 200ms ease;
   z-index: 300;
-  display: inline-flex; align-items: center; gap: 8px;
-  white-space: nowrap;
-  max-width: 90vw;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  display: inline-flex; align-items: center; gap: 9px;
+  white-space: nowrap; max-width: 92vw;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast.error { background: #b91c1c; border-color: #b91c1c; color: #fff; }
-.toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); }
-.toast.error .dot { background: #fff; }
+.toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex: none; }
 
-/* =============== Snapshot mode tweaks =============== */
-body.snapshot .nav-links a[href="#assumptions"],
-body.snapshot .nav-links a[href="#methodology"] { display: none; }
-body.snapshot .scenarios .label { display: inline; }
-body.snapshot .snapshot-banner {
-  display: flex;
-  margin: 0 32px;
-  max-width: 1256px;
-  margin-left: auto; margin-right: auto;
-  padding: 10px 16px;
-  background: var(--accent-bg); border: 1px solid var(--accent-soft);
-  color: var(--warn); border-radius: 0;
-  font-size: 12px; font-weight: 500; align-items: center; gap: 10px;
-  margin-top: 16px;
-}
-.snapshot-banner { display: none; }
+/* =============== Pulse on scenario change =============== */
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
+.pulse { animation: pulse 240ms ease; }
+
+/* =============== Presentation mode =============== */
+body.present .nav,
+body.present .hero,
+body.present #assumptions,
+body.present #methodology,
+body.present .table-card,
+body.present .narrative,
+body.present footer { display: none; }
+body.present { --trackh: clamp(240px, calc(100vh - 700px), 540px); }
+body.present .kpi-strip { margin-top: 20px; }
+body.present .kpi .lbl { font-size: 15px; }
+body.present .kpi .num { font-size: clamp(38px, 3vw, 52px); }
+body.present .kpi .hint { font-size: 14px; }
+body.present .kpi.accent .num { font-size: clamp(76px, 6.4vw, 112px); }
+body.present .section { padding-top: 20px; }
+body.present .section-head { display: none; }
+body.present .grid { grid-template-columns: 330px 1fr; }
+body.present.snapshot .grid { grid-template-columns: 1fr; }
+body.present .bar-val { font-size: 22px; }
+body.present .bar-lbl { font-size: 16px; }
+body.present .chart-card h3 { font-size: 18px; }
+body.present .chart-card .chart-sub { font-size: 14px; }
+body.present .info { display: none; }
 
 /* =============== Responsive =============== */
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
   .kpi-strip { grid-template-columns: 1fr 1fr 1fr; }
   .kpi.accent { grid-column: span 3; grid-row: auto; min-height: auto; }
-  .kpi.accent .num { font-size: 44px; }
+  .facts { grid-template-columns: 1fr; }
 }
-@media (max-width: 900px) {
-  .grid { grid-template-columns: 1fr; }
+@media (max-width: 940px) {
+  .grid, body.present .grid { grid-template-columns: 1fr; }
   .charts { grid-template-columns: 1fr; }
   .narrative { grid-template-columns: 1fr; }
   .nav-links { display: none; }
   .kpi-strip { grid-template-columns: 1fr 1fr; }
   .kpi.accent { grid-column: span 2; }
+  .tier-strip { grid-template-columns: 1fr; }
 }
-@media (max-width: 600px) {
+@media (max-width: 620px) {
+  :root { --pad-x: 18px; }
   .kpi-strip { grid-template-columns: 1fr; }
   .kpi.accent { grid-column: span 1; }
-  .kpi.accent .num { font-size: 36px; }
-  .nav-inner, .hero, .section, footer { padding-left: 18px; padding-right: 18px; }
-  .hero { padding-top: 36px; }
+  .kpi.accent .num { font-size: 44px; }
+  .hero { padding-top: 32px; }
   .scenarios .label { display: none; }
+  .nav-actions .btn:not(#presentBtn) { display: none; }
 }
 @media print {
-  .nav, .scenarios, .inputs-col, details.method, footer, .snapshot-banner { display: none; }
+  .nav, .present-bar, .scenarios, .inputs-col, details.method, footer, .snapshot-banner { display: none; }
   body { background: #fff; color: #000; }
-  .kpi-strip { box-shadow: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  html { scroll-behavior: auto; }
 }
 </style>
 </head>
 <body>
 
-<div class="loading-veil"><div class="spin"></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-<!-- ============ NAV ============ -->
+<!-- ============ NAV (hidden in presentation mode) ============ -->
 <nav class="nav">
   <div class="nav-inner">
-    <div class="nav-brand">
+    <div class="brand">
       <span class="logo">T</span>
       TrustLayer
       <span class="sep">/</span>
@@ -696,83 +669,125 @@ body.snapshot .snapshot-banner {
       <a href="#model">Model</a>
       <a href="#assumptions">Assumptions</a>
       <a href="#methodology">Methodology</a>
-      <a href="#results">Results</a>
     </div>
     <div class="nav-actions">
-      <button class="icon-btn" id="themeBtn" title="Toggle dark mode" aria-label="Toggle theme">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-      </button>
-      <button class="btn btn-primary" id="captureBtn" title="Copy snapshot to clipboard (C)">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="0"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        Copy snapshot<span class="kbd">C</span>
-      </button>
+      <button class="btn btn-primary" id="presentBtn" title="Toggle presentation mode (P)" aria-pressed="false">Present<span class="kbd">P</span></button>
       <button class="btn" id="snapshotBtn" title="Toggle snapshot view (S)">Snapshot<span class="kbd">S</span></button>
-      <button class="btn btn-ghost" id="resetBtn" title="Reset to defaults (R)">Reset<span class="kbd">R</span></button>
+      <button class="btn btn-ghost" id="resetBtn" title="Reset to base case (R)">Reset<span class="kbd">R</span></button>
     </div>
   </div>
 </nav>
 
+<!-- ============ PRESENTATION BAR (visible only in presentation mode) ============ -->
+<div class="present-bar">
+  <div class="brand">
+    <span class="logo">T</span>
+    TrustLayer
+    <span class="sep">/</span>
+    <span class="sub">Live sensitivity model</span>
+  </div>
+  <div class="scenarios" role="tablist" aria-label="Preset scenarios">
+    <button class="scenario-btn active" data-scenario="base" role="tab">Base<span class="kbd">1</span></button>
+    <button class="scenario-btn" data-scenario="bear" role="tab">Bear<span class="kbd">2</span></button>
+    <button class="scenario-btn" data-scenario="bull" role="tab">Bull<span class="kbd">3</span></button>
+    <button class="scenario-btn" data-scenario="discount" role="tab">Aggressive Discount<span class="kbd">4</span></button>
+    <button class="scenario-btn" data-scenario="premium" role="tab">Premium Mix<span class="kbd">5</span></button>
+  </div>
+  <div class="hints">
+    <span><span class="kbd">S</span> snapshot</span>
+    <span><span class="kbd">R</span> reset</span>
+    <button class="btn btn-ghost" id="exitPresentBtn" title="Exit presentation mode (P)">Exit<span class="kbd">P</span></button>
+  </div>
+</div>
+
 <!-- ============ HERO ============ -->
 <header class="hero">
-  <div class="eyebrow"><span class="dot"></span>Nortam, The Boardroom 2026</div>
-  <h1>Pricing economics <span class="accent">in motion</span>.</h1>
-  <p class="subtitle">A live sensitivity model for TrustLayer. Drag a slider, switch a scenario, watch ARR, gross margin, CAC payback, and break-even update in real time.</p>
+  <div class="eyebrow"><span class="dot"></span>Nortam &middot; The Boardroom 2026</div>
+  <h1>TrustLayer Pricing Simulator</h1>
+  <p class="what">TrustLayer is Nortam&rsquo;s AI&#8202;+&#8202;human translation certification platform for regulated industries &mdash; law firms, banks, and insurers that need certified, compliant translation at scale.</p>
+
+  <div class="facts">
+    <div class="fact why">
+      <h4>Why now</h4>
+      <p><strong>Quebec Bill 96 and Law 25 are binding today.</strong> OSFI Guideline E-23 takes effect <strong>May 1, 2027</strong>. The EU AI Act is phasing in behind them.</p>
+    </div>
+    <div class="fact">
+      <h4>What this page is</h4>
+      <p>A <strong>live sensitivity model, not a forecast</strong>. Sliders and scenarios drive ARR, gross margin, CAC payback, and break-even in real time.</p>
+    </div>
+  </div>
+
+  <div class="tier-strip" aria-label="Product tiers">
+    <div class="tier-card">
+      <div class="t-name"><span>Tier 1 &middot; AI Assist</span><span class="t-gm">~69% GM</span></div>
+      <div class="t-price">$0.080<small> / word</small></div>
+      <div class="t-cost">Direct cost $0.025 / word</div>
+    </div>
+    <div class="tier-card">
+      <div class="t-name"><span>Tier 2 &middot; Human Verified</span><span class="t-gm">~53% GM</span></div>
+      <div class="t-price">$0.160<small> / word</small></div>
+      <div class="t-cost">Direct cost $0.075 / word</div>
+    </div>
+    <div class="tier-card">
+      <div class="t-name"><span>Tier 3 &middot; Certified Review</span><span class="t-gm">~47% GM</span></div>
+      <div class="t-price">$0.340<small> / word</small></div>
+      <div class="t-cost">Direct cost $0.180 / word</div>
+    </div>
+  </div>
+  <p class="market-line">Market context, from the submitted proposal (not computed by this model): <strong>$18M initial market</strong> (30 top Canadian law firms) &middot; <strong>$357M serviceable</strong> &middot; <strong>$8&ndash;10B TAM</strong> &middot; LTV:CAC roughly <strong>9:1 / 14:1 / 20:1</strong> by acquisition cohort.</p>
 
   <div class="scenarios" role="tablist" aria-label="Preset scenarios">
     <span class="label">Scenario</span>
-    <button class="scenario-btn active" data-scenario="base">Base<span class="kbd">1</span></button>
-    <button class="scenario-btn" data-scenario="bear">Bear<span class="kbd">2</span></button>
-    <button class="scenario-btn" data-scenario="bull">Bull<span class="kbd">3</span></button>
-    <button class="scenario-btn" data-scenario="discount">Aggressive Discount<span class="kbd">4</span></button>
-    <button class="scenario-btn" data-scenario="premium">Premium Mix<span class="kbd">5</span></button>
+    <button class="scenario-btn active" data-scenario="base" role="tab">Base<span class="kbd">1</span></button>
+    <button class="scenario-btn" data-scenario="bear" role="tab">Bear<span class="kbd">2</span></button>
+    <button class="scenario-btn" data-scenario="bull" role="tab">Bull<span class="kbd">3</span></button>
+    <button class="scenario-btn" data-scenario="discount" role="tab">Aggressive Discount<span class="kbd">4</span></button>
+    <button class="scenario-btn" data-scenario="premium" role="tab">Premium Mix<span class="kbd">5</span></button>
   </div>
 </header>
 
 <div class="snapshot-banner" id="snapshotBanner">
   <strong>Snapshot mode</strong>
   <span id="snapshotScenarioLabel">Base Case</span>
-  <span style="color: var(--muted); margin-left:auto;">Inputs hidden for clean screenshots, press S to exit.</span>
+  <span style="color: var(--muted); margin-left:auto;">Inputs hidden for a clean view. Press S to exit.</span>
 </div>
-
-<!-- ============ CAPTURE AREA: wraps KPIs + Model for clipboard snapshot ============ -->
-<div id="captureArea">
 
 <!-- ============ KPI STRIP ============ -->
 <div class="kpi-strip" id="results">
   <div class="kpi accent">
     <div class="lbl">Total ARR <span class="info" data-tip="Annual recurring revenue across all segments. Per-word revenue (after discount) plus annual platform retainer (after discount), summed across all customers.">i</span></div>
-    <div class="num tween" id="kpi_arr" data-fmt="$M">$0.0M</div>
-    <div class="hint" id="kpi_arr_sub">at current mix</div>
+    <div class="num" id="kpi_arr" data-fmt="$M">$21.3M</div>
+    <div class="hint" id="kpi_arr_sub">100 customers &middot; 0% discount</div>
   </div>
   <div class="kpi">
     <div class="lbl">Avg ARR / Customer <span class="info" data-tip="Total ARR divided by number of customers. Falls as mix shifts toward smaller accounts, which is expected and offset by volume.">i</span></div>
-    <div class="num tween" id="kpi_avg" data-fmt="$">$0</div>
+    <div class="num" id="kpi_avg" data-fmt="$">$213,440</div>
     <div class="hint">blended across mix</div>
   </div>
   <div class="kpi">
     <div class="lbl">Gross Margin <span class="info" data-tip="(Revenue minus direct cost of translation and review) divided by revenue. Excludes fixed costs and CAC.">i</span></div>
-    <div class="num tween" id="kpi_gm" data-fmt="%">0.0%</div>
+    <div class="num" id="kpi_gm" data-fmt="%">57.1%</div>
     <div class="hint">on direct cost</div>
   </div>
   <div class="kpi">
     <div class="lbl">Contribution / Customer <span class="info" data-tip="Average revenue per customer minus average direct cost per customer. This is the cash each customer contributes toward covering fixed costs and CAC.">i</span></div>
-    <div class="num tween" id="kpi_contrib" data-fmt="$">$0</div>
+    <div class="num" id="kpi_contrib" data-fmt="$">$121,935</div>
     <div class="hint">drives break-even</div>
   </div>
   <div class="kpi">
     <div class="lbl">CAC Payback <span class="info" data-tip="Months to recover the loaded CAC from monthly contribution. Lower is better. Industry benchmark for SaaS is under 18 months.">i</span></div>
-    <div class="num tween" id="kpi_cac" data-fmt="mo">0 mo</div>
-    <div class="hint" id="kpi_cac_sub">loaded CAC: $0</div>
+    <div class="num" id="kpi_cac" data-fmt="mo">1.4 mo</div>
+    <div class="hint" id="kpi_cac_sub">loaded CAC: $14,500</div>
   </div>
   <div class="kpi">
     <div class="lbl">Op. Break-Even <span class="info" data-tip="Customers needed to cover $1.7M Year-1 fixed cost (excluding one-time platform build). Equals fixed cost divided by contribution per customer.">i</span></div>
-    <div class="num tween" id="kpi_be1" data-fmt="int">0</div>
-    <div class="hint">customers, $1.7M fixed</div>
+    <div class="num" id="kpi_be1" data-fmt="int">14</div>
+    <div class="hint">customers &middot; $1.7M fixed</div>
   </div>
   <div class="kpi">
     <div class="lbl">Loaded Break-Even <span class="info" data-tip="Customers needed to cover $2.9M total fixed cost ($1.7M ongoing plus $1.2M one-time platform build).">i</span></div>
-    <div class="num tween" id="kpi_be2" data-fmt="int">0</div>
-    <div class="hint">customers, $2.9M fixed</div>
+    <div class="num" id="kpi_be2" data-fmt="int">24</div>
+    <div class="hint">customers &middot; $2.9M fixed</div>
   </div>
 </div>
 
@@ -794,74 +809,74 @@ body.snapshot .snapshot-banner {
       <div class="card">
         <h3>Scale &amp; Discount <span class="badge">01</span></h3>
         <div class="row">
-          <label><span class="lbl-text">Number of customers <span class="info" data-tip="Total customers Nortam serves in Year 1. CAC tier shifts at 10 and 100.">i</span></span><span class="val" id="custVal">100</span></label>
-          <input type="range" id="custSlider" min="10" max="1000" step="10" value="100" />
+          <label for="custSlider"><span class="lbl-text">Number of customers <span class="info" data-tip="Total customers Nortam serves in Year 1. CAC tier shifts at 10 and 100.">i</span></span><span class="val" id="custVal">100</span></label>
+          <input type="range" id="custSlider" min="10" max="1000" step="10" value="100" aria-label="Number of customers" />
           <div class="sub">CAC bracket: <span id="cacBracketLabel" class="mono">11 to 100</span></div>
         </div>
         <div class="row">
-          <label><span class="lbl-text">Discount rate <span class="info" data-tip="Blanket reduction to per-word revenue and platform retainer. Direct cost is unaffected.">i</span></span><span class="val" id="discVal">0%</span></label>
-          <input type="range" id="discSlider" min="0" max="40" step="1" value="0" />
+          <label for="discSlider"><span class="lbl-text">Discount rate <span class="info" data-tip="Blanket reduction to per-word revenue and platform retainer. Direct cost is unaffected.">i</span></span><span class="val" id="discVal">0%</span></label>
+          <input type="range" id="discSlider" min="0" max="40" step="1" value="0" aria-label="Discount rate percent" />
         </div>
       </div>
 
       <div class="card">
         <h3>Customer Mix <span class="badge">02</span></h3>
-        <div class="mix-row"><span class="name">Large Law Firms</span><input type="number" id="mixLLF" min="0" max="100" value="30" /></div>
-        <div class="mix-row"><span class="name">FRFIs</span><input type="number" id="mixFRFI" min="0" max="100" value="50" /></div>
-        <div class="mix-row"><span class="name">Smaller Regulated Accounts</span><input type="number" id="mixSRA" min="0" max="100" value="20" /></div>
+        <div class="mix-row"><span class="name">Large Law Firms</span><input type="number" id="mixLLF" min="0" max="100" value="30" aria-label="Large Law Firms mix percent" /></div>
+        <div class="mix-row"><span class="name">FRFIs</span><input type="number" id="mixFRFI" min="0" max="100" value="50" aria-label="FRFI mix percent" /></div>
+        <div class="mix-row"><span class="name">Smaller Regulated Accounts</span><input type="number" id="mixSRA" min="0" max="100" value="20" aria-label="Smaller regulated accounts mix percent" /></div>
         <div class="mix-status">
-          <span class="pill" id="mixPill">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="pill ok" id="mixPill">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
             <span id="mixPillText">Sums to 100%</span>
           </span>
-          <span style="color: var(--muted); font-size: 11px;">Auto-normalized for the math.</span>
+          <span>Auto-normalized for the math.</span>
         </div>
       </div>
 
       <div class="card">
         <h3>Tier Mix by Segment <span class="badge">03</span></h3>
-        <p class="sub" style="margin: -6px 0 14px; font-size: 12px; color: var(--muted);">T1 AI Assist, T2 Human Verified, T3 Certified Review.</p>
+        <p class="sub" style="margin: -6px 0 14px; font-size: 13px; color: var(--muted);">T1 AI Assist, T2 Human Verified, T3 Certified Review.</p>
 
         <div class="tier-block">
-          <div class="head">Large Law Firm <span class="sum-pill" id="sum_llf">100%</span></div>
+          <div class="head">Large Law Firm <span class="sum-pill ok" id="sum_llf">100%</span></div>
           <div class="tier-grid">
-            <div class="tcol"><div class="clbl">T1</div><input type="number" id="llf_t1" min="0" max="100" value="10" /></div>
-            <div class="tcol"><div class="clbl">T2</div><input type="number" id="llf_t2" min="0" max="100" value="50" /></div>
-            <div class="tcol"><div class="clbl">T3</div><input type="number" id="llf_t3" min="0" max="100" value="40" /></div>
+            <div class="tcol"><div class="clbl">T1</div><input type="number" id="llf_t1" min="0" max="100" value="10" aria-label="Large law firm tier 1 percent" /></div>
+            <div class="tcol"><div class="clbl">T2</div><input type="number" id="llf_t2" min="0" max="100" value="50" aria-label="Large law firm tier 2 percent" /></div>
+            <div class="tcol"><div class="clbl">T3</div><input type="number" id="llf_t3" min="0" max="100" value="40" aria-label="Large law firm tier 3 percent" /></div>
           </div>
         </div>
 
         <div class="tier-block">
-          <div class="head">FRFI <span class="sum-pill" id="sum_frfi">100%</span></div>
+          <div class="head">FRFI <span class="sum-pill ok" id="sum_frfi">100%</span></div>
           <div class="tier-grid">
-            <div class="tcol"><div class="clbl">T1</div><input type="number" id="frfi_t1" min="0" max="100" value="40" /></div>
-            <div class="tcol"><div class="clbl">T2</div><input type="number" id="frfi_t2" min="0" max="100" value="45" /></div>
-            <div class="tcol"><div class="clbl">T3</div><input type="number" id="frfi_t3" min="0" max="100" value="15" /></div>
+            <div class="tcol"><div class="clbl">T1</div><input type="number" id="frfi_t1" min="0" max="100" value="40" aria-label="FRFI tier 1 percent" /></div>
+            <div class="tcol"><div class="clbl">T2</div><input type="number" id="frfi_t2" min="0" max="100" value="45" aria-label="FRFI tier 2 percent" /></div>
+            <div class="tcol"><div class="clbl">T3</div><input type="number" id="frfi_t3" min="0" max="100" value="15" aria-label="FRFI tier 3 percent" /></div>
           </div>
         </div>
 
         <div class="tier-block">
-          <div class="head">Smaller Regulated <span class="sum-pill" id="sum_sra">100%</span></div>
+          <div class="head">Smaller Regulated <span class="sum-pill ok" id="sum_sra">100%</span></div>
           <div class="tier-grid">
-            <div class="tcol"><div class="clbl">T1</div><input type="number" id="sra_t1" min="0" max="100" value="65" /></div>
-            <div class="tcol"><div class="clbl">T2</div><input type="number" id="sra_t2" min="0" max="100" value="30" /></div>
-            <div class="tcol"><div class="clbl">T3</div><input type="number" id="sra_t3" min="0" max="100" value="5" /></div>
+            <div class="tcol"><div class="clbl">T1</div><input type="number" id="sra_t1" min="0" max="100" value="65" aria-label="Smaller regulated tier 1 percent" /></div>
+            <div class="tcol"><div class="clbl">T2</div><input type="number" id="sra_t2" min="0" max="100" value="30" aria-label="Smaller regulated tier 2 percent" /></div>
+            <div class="tcol"><div class="clbl">T3</div><input type="number" id="sra_t3" min="0" max="100" value="5" aria-label="Smaller regulated tier 3 percent" /></div>
           </div>
         </div>
       </div>
 
       <div class="card">
         <h3>Platform Retainer (Annual) <span class="badge">04</span></h3>
-        <div class="retainer-row"><span class="name">Large Law Firm</span><input type="number" id="ret_llf" min="0" step="500" value="35000" /></div>
-        <div class="retainer-row"><span class="name">FRFI</span><input type="number" id="ret_frfi" min="0" step="500" value="18000" /></div>
-        <div class="retainer-row"><span class="name">Smaller Regulated</span><input type="number" id="ret_sra" min="0" step="500" value="8000" /></div>
+        <div class="retainer-row"><span class="name">Large Law Firm</span><input type="number" id="ret_llf" min="0" step="500" value="35000" aria-label="Large law firm annual retainer dollars" /></div>
+        <div class="retainer-row"><span class="name">FRFI</span><input type="number" id="ret_frfi" min="0" step="500" value="18000" aria-label="FRFI annual retainer dollars" /></div>
+        <div class="retainer-row"><span class="name">Smaller Regulated</span><input type="number" id="ret_sra" min="0" step="500" value="8000" aria-label="Smaller regulated annual retainer dollars" /></div>
       </div>
 
       <div class="card">
         <h3>Loaded CAC by Cohort <span class="badge">05</span></h3>
-        <div class="cac-row"><span class="name">Customers 1 to 10<small>founder-led sales</small></span><input type="number" id="cac_a" min="0" step="500" value="22500" /></div>
-        <div class="cac-row"><span class="name">Customers 11 to 100<small>scaled outbound</small></span><input type="number" id="cac_b" min="0" step="500" value="14500" /></div>
-        <div class="cac-row"><span class="name">Customers 101 to 1,000<small>partner-channel</small></span><input type="number" id="cac_c" min="0" step="500" value="6000" /></div>
+        <div class="cac-row"><span class="name">Customers 1 to 10<small>founder-led sales</small></span><input type="number" id="cac_a" min="0" step="500" value="22500" aria-label="CAC for customers 1 to 10" /></div>
+        <div class="cac-row"><span class="name">Customers 11 to 100<small>scaled outbound</small></span><input type="number" id="cac_b" min="0" step="500" value="14500" aria-label="CAC for customers 11 to 100" /></div>
+        <div class="cac-row"><span class="name">Customers 101 to 1,000<small>partner-channel</small></span><input type="number" id="cac_c" min="0" step="500" value="6000" aria-label="CAC for customers 101 to 1000" /></div>
       </div>
     </div>
 
@@ -870,13 +885,61 @@ body.snapshot .snapshot-banner {
       <div class="charts">
         <div class="chart-card">
           <h3>ARR by Customer Segment</h3>
-          <div class="chart-sub">USD, current customer count and mix</div>
-          <div class="chart-wrap"><canvas id="segChart"></canvas></div>
+          <div class="chart-sub">USD &middot; current customer count and mix &middot; gold marks the top segment</div>
+          <div class="bars" id="segBars">
+            <div class="bar-col">
+              <div class="bar-track">
+                <div class="bar-val" style="bottom: calc(78% + 10px);">$11.1M</div>
+                <div class="bar-fill gold" style="height: 78%;"></div>
+              </div>
+              <div class="bar-lbl">Large Law Firms</div>
+              <div class="bar-tag" style="visibility: visible;">Top segment</div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-track">
+                <div class="bar-val" style="bottom: calc(60.6% + 10px);">$8.7M</div>
+                <div class="bar-fill" style="height: 60.6%;"></div>
+              </div>
+              <div class="bar-lbl">FRFIs</div>
+              <div class="bar-tag">Top segment</div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-track">
+                <div class="bar-val" style="bottom: calc(11% + 10px);">$1.6M</div>
+                <div class="bar-fill" style="height: 11%;"></div>
+              </div>
+              <div class="bar-lbl">Smaller Regulated</div>
+              <div class="bar-tag">Top segment</div>
+            </div>
+          </div>
         </div>
         <div class="chart-card">
           <h3>Total ARR at Scale</h3>
-          <div class="chart-sub">10, 100, 1,000 customers under the current mix and pricing</div>
-          <div class="chart-wrap"><canvas id="scaleChart"></canvas></div>
+          <div class="chart-sub">Current mix and pricing held constant &middot; ARR annotated per point</div>
+          <div class="bars" id="scaleBars">
+            <div class="bar-col">
+              <div class="bar-track">
+                <div class="bar-val" style="bottom: calc(2.5% + 10px);">$2.1M</div>
+                <div class="bar-fill" style="height: 2.5%;"></div>
+              </div>
+              <div class="bar-lbl">10</div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-track">
+                <div class="bar-val" style="bottom: calc(7.8% + 10px);">$21.3M</div>
+                <div class="bar-fill" style="height: 7.8%;"></div>
+              </div>
+              <div class="bar-lbl">100</div>
+            </div>
+            <div class="bar-col">
+              <div class="bar-track">
+                <div class="bar-val" style="bottom: calc(78% + 10px);">$213.4M</div>
+                <div class="bar-fill" style="height: 78%;"></div>
+              </div>
+              <div class="bar-lbl">1,000</div>
+            </div>
+          </div>
+          <div class="axis-note">customers &middot; linear scale, mix held constant</div>
         </div>
       </div>
 
@@ -899,12 +962,12 @@ body.snapshot .snapshot-banner {
           <tfoot>
             <tr>
               <td>Total / Weighted Avg</td>
-              <td id="tf_n">0</td>
-              <td id="tf_rev">$0</td>
-              <td id="tf_cost">$0</td>
-              <td id="tf_contrib">$0</td>
-              <td id="tf_arr">$0M</td>
-              <td id="tf_dcost">$0M</td>
+              <td id="tf_n">100</td>
+              <td id="tf_rev">$213,440</td>
+              <td id="tf_cost">$91,505</td>
+              <td id="tf_contrib">$121,935</td>
+              <td id="tf_arr">$21.3M</td>
+              <td id="tf_dcost">$9.2M</td>
             </tr>
           </tfoot>
         </table>
@@ -923,8 +986,6 @@ body.snapshot .snapshot-banner {
     </div>
   </div>
 </section>
-
-</div><!-- /captureArea -->
 
 <!-- ============ ASSUMPTIONS ============ -->
 <section class="section" id="assumptions">
@@ -971,6 +1032,19 @@ body.snapshot .snapshot-banner {
       </tbody>
     </table>
   </div>
+
+  <div class="assumption-table" style="margin-top: 16px;">
+    <h3>Regulatory Drivers <span class="src">Source: Nortam proposal, market analysis</span></h3>
+    <table>
+      <thead><tr><th>Regulation</th><th>Status</th><th>Relevance</th></tr></thead>
+      <tbody>
+        <tr><td>Quebec Bill 96</td><td>Binding now</td><td>French-language requirements for contracts and customer-facing documents</td></tr>
+        <tr><td>Quebec Law 25</td><td>Binding now</td><td>Privacy and data-handling obligations for translated materials</td></tr>
+        <tr><td>OSFI Guideline E-23</td><td>Effective May 1, 2027</td><td>Model risk management for AI used by federally regulated financial institutions</td></tr>
+        <tr><td>EU AI Act</td><td>Phasing in</td><td>Certification and human-oversight standards for AI-assisted output</td></tr>
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <!-- ============ METHODOLOGY ============ -->
@@ -986,17 +1060,17 @@ body.snapshot .snapshot-banner {
     <summary>Show formulas</summary>
     <div class="method-body">
       <h4>1. Per-customer revenue (per segment)</h4>
-      <p><code>revenue = words × Σ(tier_share × tier_price) × (1 − discount) + retainer × (1 − discount)</code></p>
+      <p><code>revenue = words &times; &Sigma;(tier_share &times; tier_price) &times; (1 &minus; discount) + retainer &times; (1 &minus; discount)</code></p>
       <p>The blended price per word is the dot product of the segment's tier mix and the per-tier prices. Both the per-word stream and the annual platform retainer are discounted; direct cost is not discounted, so margin compresses as discount rises.</p>
 
       <h4>2. Per-customer direct cost</h4>
-      <p><code>direct_cost = words × Σ(tier_share × tier_cost)</code></p>
+      <p><code>direct_cost = words &times; &Sigma;(tier_share &times; tier_cost)</code></p>
 
       <h4>3. Contribution per customer</h4>
-      <p><code>contribution = revenue − direct_cost</code>. This is the dollar amount each customer contributes toward fixed costs and CAC. It is the denominator of break-even and the numerator of CAC payback.</p>
+      <p><code>contribution = revenue &minus; direct_cost</code>. This is the dollar amount each customer contributes toward fixed costs and CAC. It is the denominator of break-even and the numerator of CAC payback.</p>
 
       <h4>4. Gross margin</h4>
-      <p><code>gross_margin = (total_revenue − total_direct_cost) / total_revenue</code>, weighted across the customer mix.</p>
+      <p><code>gross_margin = (total_revenue &minus; total_direct_cost) / total_revenue</code>, weighted across the customer mix.</p>
 
       <h4>5. CAC payback (months)</h4>
       <p><code>cac_payback = loaded_CAC / (avg_contribution / 12)</code>. CAC tiers by total customer count: $22,500 for the first 10, $14,500 for 11 to 100, $6,000 for 101 to 1,000. All three are editable.</p>
@@ -1011,8 +1085,8 @@ body.snapshot .snapshot-banner {
 </section>
 
 <footer>
-  <span>Built for The Boardroom 2026 &middot; Team Nortam</span>
-  <span class="mono" style="font-size: 11px;">Single-file static build &middot; no backend</span>
+  <span>Built by Team Nortam for The Boardroom 2026</span>
+  <span class="mono" style="font-size: 12px;">Single-file static build &middot; no backend &middot; runs offline</span>
 </footer>
 
 <script>
@@ -1042,12 +1116,13 @@ const fmt = {
   "int": n => isFinite(n) ? Math.ceil(n).toLocaleString() : "n/a"
 };
 
-/* ----- Number tween ----- */
+/* ----- Number tween (KPIs count to new values over ~400ms) ----- */
+const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const lastValues = new Map();
-function tweenNumber(el, to, fmtKey, duration = 380) {
+function tweenNumber(el, to, fmtKey, duration = 400) {
   const from = lastValues.get(el.id) ?? to;
   lastValues.set(el.id, to);
-  if (!isFinite(to)) { el.textContent = fmt[fmtKey](to); return; }
+  if (!isFinite(to) || REDUCED_MOTION) { el.textContent = fmt[fmtKey](to); return; }
   if (Math.abs(from - to) < 1e-9) { el.textContent = fmt[fmtKey](to); return; }
   const start = performance.now();
   function step(t) {
@@ -1139,71 +1214,40 @@ function compute(state, nOverride) {
   return { n, segments, totalARR, totalCost, avgARR, avgContrib, grossMargin, cac, cacPaybackMo, beOps, beFull };
 }
 
-/* ============ Chart.js setup ============ */
-function chartColors() {
-  const styles = getComputedStyle(document.documentElement);
-  return {
-    accent: styles.getPropertyValue("--accent").trim(),
-    accent2: styles.getPropertyValue("--accent-2").trim(),
-    ink: styles.getPropertyValue("--ink").trim(),
-    muted: styles.getPropertyValue("--muted").trim(),
-    line: styles.getPropertyValue("--line").trim(),
-    soft: styles.getPropertyValue("--bg-soft").trim()
-  };
+/* ============ Bar charts (pure DOM, no external library) ============ */
+// Bars are capped at 78% of track height so value labels always fit above.
+const BAR_MAX_PCT = 78;
+function collectBars(containerId) {
+  return Array.from(document.querySelectorAll(`#${containerId} .bar-col`)).map(col => ({
+    fill: col.querySelector(".bar-fill"),
+    val:  col.querySelector(".bar-val"),
+    tag:  col.querySelector(".bar-tag")
+  }));
 }
+let segBarEls, scaleBarEls;
 
-let segChart, scaleChart;
-function buildCharts() {
-  const c = chartColors();
-  const common = {
-    responsive: true, maintainAspectRatio: false,
-    animation: { duration: 600, easing: "easeOutCubic" },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: c.ink, titleColor: "#fff", bodyColor: "#fff",
-        padding: 10, displayColors: false, borderWidth: 0, cornerRadius: 6,
-        callbacks: { label: ctx => fmt["$M"](ctx.parsed.y) }
-      }
-    }
-  };
-  if (segChart) segChart.destroy();
-  if (scaleChart) scaleChart.destroy();
-
-  segChart = new Chart($("segChart"), {
-    type: "bar",
-    data: { labels: ["Large Law Firms","FRFIs","Smaller Regulated"],
-      datasets: [{ data: [0,0,0],
-        backgroundColor: [c.ink, c.muted, c.accent],
-        borderRadius: 4, borderSkipped: false, maxBarThickness: 64 }] },
-    options: { ...common,
-      scales: {
-        y: { ticks: { color: c.muted, font: { size: 11 }, callback: v => "$"+(v/1e6).toFixed(1)+"M" },
-             grid: { color: c.line, drawBorder: false }, border: { display: false } },
-        x: { ticks: { color: c.muted, font: { size: 11 } },
-             grid: { display: false }, border: { color: c.line } }
-      } }
+function renderBars(r, state) {
+  // Segment chart: gold on the top-ARR segment, explicitly tagged.
+  const segVals = r.segments.map(s => s.segARR);
+  const maxSeg = Math.max(...segVals, 1);
+  const topIdx = segVals.indexOf(Math.max(...segVals));
+  segBarEls.forEach((b, i) => {
+    const pct = Math.max(2.5, segVals[i]/maxSeg * BAR_MAX_PCT);
+    b.fill.style.height = pct + "%";
+    b.val.style.bottom = `calc(${pct}% + 10px)`;
+    b.val.textContent = fmt["$M"](segVals[i]);
+    b.fill.classList.toggle("gold", i === topIdx);
+    if (b.tag) b.tag.style.visibility = (i === topIdx) ? "visible" : "hidden";
   });
 
-  scaleChart = new Chart($("scaleChart"), {
-    type: "bar",
-    data: { labels: ["10","100","1,000"],
-      datasets: [{ data: [0,0,0],
-        backgroundColor: ctx => {
-          const cv = ctx.chart.ctx;
-          const g = cv.createLinearGradient(0,0,0,240);
-          g.addColorStop(0, c.accent2); g.addColorStop(1, c.accent);
-          return g;
-        },
-        borderRadius: 4, borderSkipped: false, maxBarThickness: 64 }] },
-    options: { ...common,
-      scales: {
-        y: { ticks: { color: c.muted, font: { size: 11 }, callback: v => "$"+(v/1e6).toFixed(0)+"M" },
-             grid: { color: c.line, drawBorder: false }, border: { display: false } },
-        x: { title: { display: true, text: "Customers", color: c.muted, font: { size: 11 } },
-             ticks: { color: c.muted, font: { size: 11 } },
-             grid: { display: false }, border: { color: c.line } }
-      } }
+  // Scale chart: total ARR at 10 / 100 / 1,000 customers, values annotated.
+  const scaleVals = [compute(state,10).totalARR, compute(state,100).totalARR, compute(state,1000).totalARR];
+  const maxScale = Math.max(...scaleVals, 1);
+  scaleBarEls.forEach((b, i) => {
+    const pct = Math.max(2.5, scaleVals[i]/maxScale * BAR_MAX_PCT);
+    b.fill.style.height = pct + "%";
+    b.val.style.bottom = `calc(${pct}% + 10px)`;
+    b.val.textContent = fmt["$M"](scaleVals[i]);
   });
 }
 
@@ -1234,7 +1278,7 @@ function render() {
 
   const r = compute(state);
 
-  // KPIs (tweened).
+  // KPIs (tweened, ~400ms).
   tweenNumber($("kpi_arr"),    r.totalARR,        "$M");
   tweenNumber($("kpi_avg"),    r.avgARR,          "$");
   tweenNumber($("kpi_gm"),     r.grossMargin,     "%");
@@ -1243,18 +1287,11 @@ function render() {
   tweenNumber($("kpi_be1"),    r.beOps,           "int");
   tweenNumber($("kpi_be2"),    r.beFull,          "int");
 
-  $("kpi_arr_sub").textContent = `${state.customers.toLocaleString()} customers, ${(state.discount*100).toFixed(0)}% discount`;
+  $("kpi_arr_sub").textContent = `${state.customers.toLocaleString()} customers · ${(state.discount*100).toFixed(0)}% discount`;
   $("kpi_cac_sub").textContent = `loaded CAC: ${fmt["$"](r.cac)}`;
 
   // Charts.
-  segChart.data.datasets[0].data = r.segments.map(s => s.segARR);
-  segChart.update("active");
-  scaleChart.data.datasets[0].data = [
-    compute(state, 10).totalARR,
-    compute(state, 100).totalARR,
-    compute(state, 1000).totalARR
-  ];
-  scaleChart.update("active");
+  renderBars(r, state);
 
   // Table.
   const tbody = document.querySelector("#resultsTable tbody");
@@ -1330,7 +1367,7 @@ function applyScenario(key) {
   $("mixLLF").value  = s.mix.llf;
   $("mixFRFI").value = s.mix.frfi;
   $("mixSRA").value  = s.mix.sra;
-  ["llf","frfi","sra"].forEach((seg, i) => {
+  ["llf","frfi","sra"].forEach(seg => {
     $(`${seg}_t1`).value = s.tiers[seg][0];
     $(`${seg}_t2`).value = s.tiers[seg][1];
     $(`${seg}_t3`).value = s.tiers[seg][2];
@@ -1344,6 +1381,7 @@ function applyScenario(key) {
 
   document.querySelectorAll(".scenario-btn").forEach(b => {
     b.classList.toggle("active", b.dataset.scenario === key);
+    b.setAttribute("aria-selected", b.dataset.scenario === key ? "true" : "false");
   });
   $("snapshotScenarioLabel").textContent = s.label;
 
@@ -1354,164 +1392,27 @@ function applyScenario(key) {
   render();
 }
 
-/* ============ Theme toggle ============ */
-function setTheme(t) {
-  document.documentElement.setAttribute("data-theme", t);
-  try { localStorage.setItem("trustlayer-theme", t); } catch(e) {}
-  buildCharts(); render();
-}
-function initTheme() {
-  let t = null;
-  try { t = localStorage.getItem("trustlayer-theme"); } catch(e) {}
-  if (!t) t = "light";
-  document.documentElement.setAttribute("data-theme", t);
-}
-
 /* ============ Snapshot toggle ============ */
 function toggleSnapshot() {
   document.body.classList.toggle("snapshot");
-  $("snapshotBanner").style.display = document.body.classList.contains("snapshot") ? "flex" : "none";
 }
+
+/* ============ Presentation mode ============ */
+function setPresent(on) {
+  document.body.classList.toggle("present", on);
+  $("presentBtn").setAttribute("aria-pressed", on ? "true" : "false");
+  window.scrollTo(0, 0);
+  if (on) showToast("Presentation mode · 1–5 scenarios · S snapshot · R reset · P to exit", { duration: 3200 });
+}
+function togglePresent() { setPresent(!document.body.classList.contains("present")); }
 
 /* ============ Toast ============ */
 function showToast(msg, opts) {
   const t = $("toast");
-  const isError = opts && opts.error;
   t.innerHTML = `<span class="dot"></span>${msg}`;
-  t.classList.toggle("error", !!isError);
   t.classList.add("show");
   clearTimeout(t._tid);
   t._tid = setTimeout(() => t.classList.remove("show"), opts && opts.duration ? opts.duration : 2600);
-}
-
-/* ============ Snapshot capture to clipboard ============ */
-let _h2cLoading = null;
-function loadHtml2Canvas() {
-  if (window.html2canvas) return Promise.resolve();
-  if (_h2cLoading) return _h2cLoading;
-  _h2cLoading = new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
-    s.onload = resolve;
-    s.onerror = () => reject(new Error("Failed to load html2canvas"));
-    document.head.appendChild(s);
-  });
-  return _h2cLoading;
-}
-
-function activeScenarioLabel() {
-  const a = document.querySelector(".scenario-btn.active");
-  if (!a) return "Custom";
-  // Strip the trailing kbd number from the button text.
-  return a.textContent.replace(/\d+\s*$/, "").trim() + " Case";
-}
-
-async function copySnapshot() {
-  const btn = $("captureBtn");
-  const originalHtml = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span style="opacity:0.7">Capturing...</span>';
-
-  try {
-    await loadHtml2Canvas();
-
-    // Enter snapshot layout for the capture, then restore.
-    const wasSnapshot = document.body.classList.contains("snapshot");
-    if (!wasSnapshot) document.body.classList.add("snapshot");
-    // Two frames so layout settles before the rasterization.
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-    const node = $("captureArea");
-    const bodyBg = getComputedStyle(document.body).backgroundColor;
-    const canvas = await window.html2canvas(node, {
-      backgroundColor: bodyBg,
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      windowWidth: document.documentElement.clientWidth
-    });
-
-    if (!wasSnapshot) document.body.classList.remove("snapshot");
-
-    // Compose final canvas: capture + dark citation strip at bottom.
-    const scenario = activeScenarioLabel();
-    const dateStr = new Date().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-    const stripH = 110;                     // CSS pixels
-    const pad = 32;
-    const w = canvas.width;
-    const out = document.createElement("canvas");
-    out.width = w;
-    out.height = canvas.height + stripH * 2; // *2 because canvas is already 2x scale
-    const ctx = out.getContext("2d");
-    ctx.fillStyle = bodyBg;
-    ctx.fillRect(0, 0, out.width, out.height);
-    ctx.drawImage(canvas, 0, 0);
-
-    // Citation strip
-    const stripY = canvas.height;
-    ctx.fillStyle = "#0a0c10";
-    ctx.fillRect(0, stripY, w, stripH * 2);
-    ctx.fillStyle = "#c9a227";
-    ctx.fillRect(0, stripY, 12, stripH * 2);
-
-    ctx.textBaseline = "top";
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "600 32px Inter, -apple-system, sans-serif";
-    ctx.fillText("TrustLayer Pricing Simulator", pad * 2, stripY + 28);
-
-    ctx.fillStyle = "#9ca3af";
-    ctx.font = "400 20px Inter, -apple-system, sans-serif";
-    ctx.fillText(`Nortam, The Boardroom 2026   ,   Scenario: ${scenario}   ,   Captured ${dateStr}`, pad * 2, stripY + 78);
-
-    ctx.fillStyle = "#6b7280";
-    ctx.font = "400 18px Inter, -apple-system, sans-serif";
-    ctx.fillText(location.host + location.pathname, pad * 2, stripY + 132);
-
-    // Render to blob and write to clipboard (image + text).
-    const blob = await new Promise(resolve => out.toBlob(resolve, "image/png"));
-    const citation =
-      `TrustLayer Pricing Simulator. Nortam, The Boardroom 2026. ` +
-      `Scenario: ${scenario}. Captured ${new Date().toLocaleString()}. ` +
-      `Source: ${location.href}`;
-
-    let copiedBoth = false;
-    if (navigator.clipboard && window.ClipboardItem) {
-      try {
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            "image/png": blob,
-            "text/plain": new Blob([citation], { type: "text/plain" })
-          })
-        ]);
-        copiedBoth = true;
-      } catch (e) {
-        // Some browsers reject multi-type ClipboardItems. Try image-only.
-        try {
-          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-          await navigator.clipboard.writeText(citation).catch(() => {});
-          copiedBoth = true;
-        } catch (e2) { /* fall through to download */ }
-      }
-    }
-
-    if (copiedBoth) {
-      showToast("Snapshot and citation copied to clipboard");
-    } else {
-      // Fallback: download image, copy citation text.
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `trustlayer-${scenario.toLowerCase().replace(/\s+/g, "-")}.png`;
-      document.body.appendChild(a); a.click(); a.remove();
-      try { await navigator.clipboard.writeText(citation); } catch (e) {}
-      showToast("Browser blocked image copy. Saved PNG, copied citation text.", { duration: 4000 });
-    }
-  } catch (err) {
-    console.error(err);
-    showToast("Could not capture snapshot. " + (err && err.message ? err.message : ""), { error: true, duration: 4000 });
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalHtml;
-  }
 }
 
 /* ============ Wiring ============ */
@@ -1523,42 +1424,31 @@ function wireUp() {
   document.querySelectorAll(".scenario-btn").forEach(b => {
     b.addEventListener("click", () => applyScenario(b.dataset.scenario));
   });
-  $("themeBtn").addEventListener("click", () => {
-    const cur = document.documentElement.getAttribute("data-theme");
-    setTheme(cur === "dark" ? "light" : "dark");
-  });
+  $("presentBtn").addEventListener("click", togglePresent);
+  $("exitPresentBtn").addEventListener("click", () => setPresent(false));
   $("snapshotBtn").addEventListener("click", toggleSnapshot);
   $("resetBtn").addEventListener("click", () => applyScenario("base"));
-  $("captureBtn").addEventListener("click", copySnapshot);
 
-  // Keyboard shortcuts.
+  // Keyboard shortcuts: 1-5 scenarios, P present, S snapshot, R reset.
+  // Range sliders keep arrow keys but pass letters/digits through, so the
+  // demo hotkeys still work right after dragging or arrowing a slider.
   document.addEventListener("keydown", e => {
-    if (e.target.matches("input, textarea, select")) return;
+    if (e.key === "Escape") { setPresent(false); return; }
+    if (e.target.matches("input:not([type=range]), textarea, select")) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const map = { "1":"base", "2":"bear", "3":"bull", "4":"discount", "5":"premium" };
     if (map[e.key]) { applyScenario(map[e.key]); e.preventDefault(); }
+    else if (e.key.toLowerCase() === "p") { togglePresent(); }
     else if (e.key.toLowerCase() === "r") { applyScenario("base"); }
     else if (e.key.toLowerCase() === "s") { toggleSnapshot(); }
-    else if (e.key.toLowerCase() === "c") { copySnapshot(); }
-    else if (e.key.toLowerCase() === "d") {
-      const cur = document.documentElement.getAttribute("data-theme");
-      setTheme(cur === "dark" ? "light" : "dark");
-    }
   });
 }
 
-/* ============ Init ============ */
-function init() {
-  initTheme();
-  buildCharts();
-  wireUp();
-  render();
-  // Reveal page once first paint is done.
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    document.body.classList.add("loaded");
-  }));
-}
-init();
+/* ============ Init: full render before first interaction ============ */
+segBarEls = collectBars("segBars");
+scaleBarEls = collectBars("scaleBars");
+wireUp();
+render();
 </script>
 </body>
 </html>
