@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://the-boardroom-rotman.vercel.app/sitemap.xml

@@ -3,14 +3,82 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>TrustLayer model</title>
-<meta name="description" content="TrustLayer pricing model. Change the assumptions and watch ARR, margin, break-even and payback recalculate." />
+<title>TrustLayer Pricing Model | The Boardroom 2026, built by Joseph Leung</title>
+<meta name="description" content="Interactive pricing model for TrustLayer, a risk-based translation service pitched at The Boardroom 2026. Built by Joseph Leung. Change the assumptions and watch ARR, margin, break-even and CAC payback recalculate." />
+<meta name="author" content="Joseph Leung" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<link rel="canonical" href="https://the-boardroom-rotman.vercel.app/" />
 <meta name="theme-color" content="#0A1F44" />
 <meta name="color-scheme" content="light" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="TrustLayer model" />
+<meta property="og:site_name" content="TrustLayer Pricing Model" />
+<meta property="og:url" content="https://the-boardroom-rotman.vercel.app/" />
+<meta property="og:title" content="TrustLayer Pricing Model by Joseph Leung" />
 <meta property="og:description" content="Don't take our word for it. Change the assumptions and break the model yourself." />
-<link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%230A1F44"/><path d="M16 18h32v8H37v22h-10V26H16z" fill="%23fff"/></svg>' />
+<meta property="og:image" content="https://the-boardroom-rotman.vercel.app/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="TrustLayer pricing model: $21.3M ARR, 57% margin, 14 customers to break even" />
+<meta property="og:locale" content="en_CA" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="TrustLayer Pricing Model by Joseph Leung" />
+<meta name="twitter:description" content="Don't take our word for it. Change the assumptions and break the model yourself." />
+<meta name="twitter:image" content="https://the-boardroom-rotman.vercel.app/og.png" />
+<meta name="twitter:image:alt" content="TrustLayer pricing model: $21.3M ARR, 57% margin, 14 customers to break even" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://josephleung-site.vercel.app/#joseph",
+      "name": "Joseph Leung",
+      "alternateName": ["Joseph Wah Sing Leung", "Wah Sing (Joseph) Leung"],
+      "url": "https://josephleung-site.vercel.app",
+      "description": "Founder of Daily Brief HQ and NerfChess, retired national-level chess player and Grade 11 student in Richmond Hill, Ontario.",
+      "homeLocation": { "@type": "Place", "name": "Richmond Hill, Ontario, Canada" },
+      "sameAs": [
+        "https://www.linkedin.com/in/joseph-leung-21b3473bb/",
+        "https://github.com/idontreallyknow-20",
+        "https://dailybriefhq.com",
+        "https://dailybriefhq.com/about",
+        "https://nerfchess.com",
+        "https://www.chess.com/member/squeakycrab",
+        "https://lichess.org/@/BigTrustedCrabby",
+        "https://lichess.org/@/UltraAddict2010",
+        "https://ratings.fide.com/profile/2636654",
+        "https://www.chess.ca/en/ratings/p/?id=167606"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://the-boardroom-rotman.vercel.app/#website",
+      "url": "https://the-boardroom-rotman.vercel.app/",
+      "name": "TrustLayer Pricing Model",
+      "inLanguage": "en-CA",
+      "creator": { "@id": "https://josephleung-site.vercel.app/#joseph" }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://the-boardroom-rotman.vercel.app/#app",
+      "name": "TrustLayer Pricing Model",
+      "url": "https://the-boardroom-rotman.vercel.app/",
+      "description": "Interactive unit-economics model for TrustLayer, a risk-based translation service pitched at The Boardroom 2026. Recalculates ARR, margin, break-even and CAC payback as assumptions change.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript",
+      "isAccessibleForFree": true,
+      "image": "https://the-boardroom-rotman.vercel.app/og.png",
+      "creator": { "@id": "https://josephleung-site.vercel.app/#joseph" },
+      "author": { "@id": "https://josephleung-site.vercel.app/#joseph" },
+      "isPartOf": { "@id": "https://the-boardroom-rotman.vercel.app/#website" }
+    }
+  ]
+}
+</script>
 
 <style>
 :root {
@@ -129,10 +197,13 @@ details[open] summary::after { content: "\2212"; }
 .fixed table { width: 100%; border-collapse: collapse; margin-top: 4px; }
 .fixed th { text-align: left; font-weight: 400; color: var(--ink-3); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; padding: 6px 0; border-bottom: 1px solid var(--hair); }
 .fixed td { padding: 7px 0; border-bottom: 1px solid var(--hair); vertical-align: top; }
-.fixed td:not(:first-child), .fixed th:not(:first-child) { text-align: right; white-space: nowrap; }
+.fixed td:not(:first-child), .fixed th:not(:first-child) { text-align: right; white-space: nowrap; padding-left: 10px; }
 .fixed p { margin-top: 12px; }
 
 footer { padding: 24px var(--gx) calc(28px + env(safe-area-inset-bottom)); font-size: 12px; color: var(--ink-3); }
+footer .credit { margin-top: 8px; line-height: 1.55; color: var(--ink-2); }
+footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--hair); }
+footer a:hover { border-bottom-color: var(--navy); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 @media (min-width: 640px) {
@@ -266,7 +337,10 @@ footer { padding: 24px var(--gx) calc(28px + env(safe-area-inset-bottom)); font-
   </div>
 </details>
 
-<footer>TrustLayer · Nortam · The Boardroom 2026</footer>
+<footer>
+  <p>TrustLayer · Nortam · The Boardroom 2026</p>
+  <p class="credit">Built by <a href="https://josephleung-site.vercel.app" rel="author">Joseph Leung</a> (Joseph Wah Sing Leung), a student founder in Richmond Hill, Ontario. Also the writer of the <a href="https://dailybriefhq.com">Daily Brief HQ</a> newsletter and the maker of <a href="https://nerfchess.com">NerfChess</a>.</p>
+</footer>
 </main>
 
 <script>
