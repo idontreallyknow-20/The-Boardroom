@@ -3,14 +3,82 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>TrustLayer model</title>
-<meta name="description" content="TrustLayer pricing model. Change the assumptions and watch ARR, margin, break-even and payback recalculate." />
+<title>TrustLayer Pricing Model | The Boardroom 2026, built by Joseph Leung</title>
+<meta name="description" content="Interactive pricing model for TrustLayer, a risk-based translation service pitched at The Boardroom 2026. Built by Joseph Leung. Change the assumptions and watch ARR, margin, break-even and CAC payback recalculate." />
+<meta name="author" content="Joseph Leung" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<link rel="canonical" href="https://the-boardroom-rotman.vercel.app/" />
 <meta name="theme-color" content="#0A1F44" />
 <meta name="color-scheme" content="light" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="TrustLayer model" />
+<meta property="og:site_name" content="TrustLayer Pricing Model" />
+<meta property="og:url" content="https://the-boardroom-rotman.vercel.app/" />
+<meta property="og:title" content="TrustLayer Pricing Model by Joseph Leung" />
 <meta property="og:description" content="Don't take our word for it. Change the assumptions and break the model yourself." />
-<link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%230A1F44"/><path d="M16 18h32v8H37v22h-10V26H16z" fill="%23fff"/></svg>' />
+<meta property="og:image" content="https://the-boardroom-rotman.vercel.app/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="TrustLayer pricing model: $21.3M ARR, 57% margin, 14 customers to break even" />
+<meta property="og:locale" content="en_CA" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="TrustLayer Pricing Model by Joseph Leung" />
+<meta name="twitter:description" content="Don't take our word for it. Change the assumptions and break the model yourself." />
+<meta name="twitter:image" content="https://the-boardroom-rotman.vercel.app/og.png" />
+<meta name="twitter:image:alt" content="TrustLayer pricing model: $21.3M ARR, 57% margin, 14 customers to break even" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://josephleung-site.vercel.app/#joseph",
+      "name": "Joseph Leung",
+      "alternateName": ["Joseph Wah Sing Leung", "Wah Sing (Joseph) Leung"],
+      "url": "https://josephleung-site.vercel.app",
+      "description": "Founder of Daily Brief HQ and NerfChess, retired national-level chess player and Grade 11 student in Richmond Hill, Ontario.",
+      "homeLocation": { "@type": "Place", "name": "Richmond Hill, Ontario, Canada" },
+      "sameAs": [
+        "https://www.linkedin.com/in/joseph-leung-21b3473bb/",
+        "https://github.com/idontreallyknow-20",
+        "https://dailybriefhq.com",
+        "https://dailybriefhq.com/about",
+        "https://nerfchess.com",
+        "https://www.chess.com/member/squeakycrab",
+        "https://lichess.org/@/BigTrustedCrabby",
+        "https://lichess.org/@/UltraAddict2010",
+        "https://ratings.fide.com/profile/2636654",
+        "https://www.chess.ca/en/ratings/p/?id=167606"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://the-boardroom-rotman.vercel.app/#website",
+      "url": "https://the-boardroom-rotman.vercel.app/",
+      "name": "TrustLayer Pricing Model",
+      "inLanguage": "en-CA",
+      "creator": { "@id": "https://josephleung-site.vercel.app/#joseph" }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://the-boardroom-rotman.vercel.app/#app",
+      "name": "TrustLayer Pricing Model",
+      "url": "https://the-boardroom-rotman.vercel.app/",
+      "description": "Interactive unit-economics model for TrustLayer, a risk-based translation service pitched at The Boardroom 2026. Recalculates ARR, margin, break-even and CAC payback as assumptions change.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript",
+      "isAccessibleForFree": true,
+      "image": "https://the-boardroom-rotman.vercel.app/og.png",
+      "creator": { "@id": "https://josephleung-site.vercel.app/#joseph" },
+      "author": { "@id": "https://josephleung-site.vercel.app/#joseph" },
+      "isPartOf": { "@id": "https://the-boardroom-rotman.vercel.app/#website" }
+    }
+  ]
+}
+</script>
 
 <style>
 :root {
@@ -21,7 +89,7 @@
   --white: #FFFFFF;
   --ink: #0A1F44;
   --ink-2: #4A5A78;
-  --ink-3: #7C89A3;
+  --ink-3: #5F6C86;
   --tint: #EEF2F8;
   --hair: #D3DAE7;
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Charter, Georgia, serif;
@@ -45,9 +113,11 @@ h1, h2, p { margin: 0; font-weight: 400; }
 /* Results panel: the thing you read in three seconds */
 .panel { position: sticky; top: 0; z-index: 10; background: var(--navy); color: var(--white); padding: calc(12px + env(safe-area-inset-top)) var(--gx) 14px; }
 .panel .top { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--navy-mute); }
+.panel .top h1 { font-size: inherit; letter-spacing: inherit; }
 .panel .top b { color: var(--white); font-weight: 600; letter-spacing: .12em; }
 .reset { white-space: nowrap; color: var(--white); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; border-bottom: 1px solid var(--white); padding-bottom: 1px; visibility: hidden; opacity: 0; transition: opacity var(--ease); }
 .reset.on { visibility: visible; opacity: 1; }
+.reset:hover { border-bottom-width: 2px; padding-bottom: 0; }
 .hero { margin-top: 10px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .hero .v { font-family: var(--serif); font-size: clamp(44px, 13vw, 60px); line-height: 1; letter-spacing: -.02em; }
 .hero .k { font-size: 13px; color: var(--navy-mute); text-align: right; line-height: 1.3; }
@@ -76,13 +146,15 @@ h1, h2, p { margin: 0; font-weight: 400; }
 .ctl .val { display: flex; align-items: baseline; gap: 8px; }
 .ctl .base { font-size: 12px; color: var(--ink-3); white-space: nowrap; visibility: hidden; }
 .ctl.changed .base { visibility: visible; }
-.ctl .base button { color: var(--ink-2); border-bottom: 1px solid var(--ink-3); font-size: 12px; margin-left: 4px; }
+.ctl .base button { color: var(--ink-2); border-bottom: 1px solid var(--ink-3); font-size: 12px; margin-left: 4px; padding: 4px 0 1px; }
+.ctl .base button:hover { color: var(--navy); border-bottom-color: var(--navy); }
 .num { position: relative; display: inline-flex; align-items: baseline; font-family: var(--serif); font-size: 22px; letter-spacing: -.01em; }
 .num .pre { font-size: 15px; color: var(--ink-2); margin-right: 1px; }
 .num input { width: 5.4ch; border: 0; border-bottom: 1px solid var(--hair); padding: 0 0 1px; background: transparent; font-family: var(--serif); font-size: 22px; text-align: right; letter-spacing: -.01em; color: var(--ink); -moz-appearance: textfield; }
 .num input.w9 { width: 9.6ch; }
 .num input.w3 { width: 3.2ch; }
 .num input::-webkit-outer-spin-button, .num input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.num input:hover { border-bottom-color: var(--ink-3); }
 .num input:focus { border-bottom-color: var(--navy); outline: none; }
 .num .suf { font-size: 13px; color: var(--ink-3); margin-left: 3px; font-family: var(--sans); }
 .ctl.changed .num input { border-bottom-color: var(--navy); }
@@ -91,8 +163,10 @@ input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; hei
 input[type=range]::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(to right, var(--navy) var(--p), var(--hair) var(--p)); }
 input[type=range]::-moz-range-track { height: 2px; background: var(--hair); }
 input[type=range]::-moz-range-progress { height: 2px; background: var(--navy); }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 22px; background: var(--navy); margin-top: -10px; border: 0; }
-input[type=range]::-moz-range-thumb { width: 14px; height: 22px; background: var(--navy); border: 0; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 22px; background: var(--navy); margin-top: -10px; border: 0; cursor: grab; transition: transform var(--ease); }
+input[type=range]:hover::-webkit-slider-thumb { transform: scaleX(1.25); }
+input[type=range]::-moz-range-thumb { width: 14px; height: 22px; background: var(--navy); border: 0; cursor: grab; }
+input[type=range]:focus-visible::-moz-range-thumb { outline: 2px solid var(--navy); outline-offset: 2px; }
 input[type=range]:focus-visible { outline: none; }
 input[type=range]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--navy); outline-offset: 2px; }
 
@@ -115,6 +189,7 @@ input[type=range]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(-
 /* Held fixed */
 details { margin: 18px var(--gx) 0; border-top: 1px solid var(--hair); }
 summary { list-style: none; text-decoration: none; cursor: pointer; padding: 14px 0; font-size: 13px; color: var(--ink-2); display: flex; justify-content: space-between; }
+summary:hover { color: var(--navy); }
 summary::-webkit-details-marker { display: none; }
 summary::after { content: "+"; font-family: var(--mono); color: var(--ink-3); }
 details[open] summary::after { content: "\2212"; }
@@ -122,10 +197,13 @@ details[open] summary::after { content: "\2212"; }
 .fixed table { width: 100%; border-collapse: collapse; margin-top: 4px; }
 .fixed th { text-align: left; font-weight: 400; color: var(--ink-3); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; padding: 6px 0; border-bottom: 1px solid var(--hair); }
 .fixed td { padding: 7px 0; border-bottom: 1px solid var(--hair); vertical-align: top; }
-.fixed td:not(:first-child), .fixed th:not(:first-child) { text-align: right; white-space: nowrap; }
+.fixed td:not(:first-child), .fixed th:not(:first-child) { text-align: right; white-space: nowrap; padding-left: 10px; }
 .fixed p { margin-top: 12px; }
 
 footer { padding: 24px var(--gx) calc(28px + env(safe-area-inset-bottom)); font-size: 12px; color: var(--ink-3); }
+footer .credit { margin-top: 8px; line-height: 1.55; color: var(--ink-2); }
+footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--hair); }
+footer a:hover { border-bottom-color: var(--navy); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 @media (min-width: 640px) {
@@ -134,10 +212,10 @@ footer { padding: 24px var(--gx) calc(28px + env(safe-area-inset-bottom)); font-
 </style>
 </head>
 <body>
-<div class="page">
+<main class="page">
 
 <section class="panel" aria-live="polite" aria-label="Results">
-  <div class="top"><span><b>TrustLayer</b> · model</span><button class="reset" id="resetBtn" type="button">Reset to base</button></div>
+  <div class="top"><h1><b>TrustLayer</b> · pricing model</h1><button class="reset" id="resetBtn" type="button">Reset to base</button></div>
   <div class="hero">
     <div class="v tnum" id="o_arr">$21.3M</div>
     <div class="k">annual recurring revenue<span class="d tnum" id="d_arr"></span></div>
@@ -240,7 +318,7 @@ footer { padding: 24px var(--gx) calc(28px + env(safe-area-inset-bottom)); font-
 
 <section class="strip" aria-label="Break-even">
   <h2>Where break-even sits</h2>
-  <svg id="beSvg" viewBox="0 0 360 74" role="img" aria-labelledby="beTitle"><title id="beTitle">Break-even position</title></svg>
+  <svg id="beSvg" viewBox="0 0 360 86" role="img" aria-labelledby="beTitle"><title id="beTitle">Break-even position</title></svg>
   <p id="beNote"></p>
 </section>
 
@@ -259,8 +337,11 @@ footer { padding: 24px var(--gx) calc(28px + env(safe-area-inset-bottom)); font-
   </div>
 </details>
 
-<footer>TrustLayer · Nortam · The Boardroom 2026</footer>
-</div>
+<footer>
+  <p>TrustLayer · Nortam · The Boardroom 2026</p>
+  <p class="credit">Built by <a href="https://josephleung-site.vercel.app" rel="author">Joseph Leung</a> (Joseph Wah Sing Leung), a student founder in Richmond Hill, Ontario. Also the writer of the <a href="https://dailybriefhq.com">Daily Brief HQ</a> newsletter and the maker of <a href="https://nerfchess.com">NerfChess</a>.</p>
+</footer>
+</main>
 
 <script>
 const BASE = { customers: 100, mix_llf: 30, mix_frfi: 50, mix_sra: 20, p1: 0.08, p2: 0.16, p3: 0.34, c1: 0.025, c2: 0.075, c3: 0.18, fixed: 1700000, build: 1200000, cac: 14500 };
@@ -270,16 +351,18 @@ const SEG = {
   sra:  { words: 600000,  tiers: [0.65, 0.30, 0.05], retainer: 8000 }
 };
 const KEYS = Object.keys(BASE);
+const LABELS = { customers: "paying customers", mix_llf: "law firm share", mix_frfi: "bank and insurer share", mix_sra: "SaaS share", p1: "AI only price", p2: "reviewed price", p3: "certified price", c1: "AI only cost", c2: "reviewed cost", c3: "certified cost", fixed: "annual fixed cost", build: "platform build", cac: "acquisition cost" };
 const $ = id => document.getElementById(id);
 const state = { ...BASE };
 
-const money = n => "$" + Math.round(n).toLocaleString("en-CA");
+const money = n => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-CA");
+const plural = (n, one, many) => `${n.toLocaleString("en-CA")} ${n === 1 ? one : many}`;
 const fmt = {
   arr: n => n >= 1e6 ? "$" + (n / 1e6).toLocaleString("en-CA", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "M" : n >= 1e3 ? "$" + Math.round(n / 1e3) + "K" : money(n),
   gm: n => Math.round(n * 100) + "%",
   be: n => isFinite(n) ? Math.ceil(n).toLocaleString("en-CA") : "never",
   pb: n => isFinite(n) ? (n < 10 ? n.toFixed(1) : Math.round(n).toLocaleString("en-CA")) : "never",
-  input: (k, v) => (k.startsWith("p") || k.startsWith("c") && k.length === 2) ? v.toFixed(3).replace(/0$/, "") : Math.round(v).toLocaleString("en-CA")
+  input: (k, v) => /^[pc]\d$/.test(k) ? v.toFixed(3).replace(/0$/, "") : Math.round(v).toLocaleString("en-CA")
 };
 
 function compute(s) {
@@ -307,7 +390,7 @@ function compute(s) {
 }
 const BASE_R = compute(BASE);
 
-function delta(id, now, base, f, better) {
+function delta(id, now, base, f) {
   const el = $(id);
   if (!isFinite(now) && !isFinite(base)) { el.textContent = ""; return; }
   const same = isFinite(now) && isFinite(base) ? f(now) === f(base) : now === base;
@@ -318,32 +401,34 @@ function renderStrip(r, s) {
   const svg = $("beSvg"), note = $("beNote");
   const W = 360, L = 6, R = 6, Y = 40;
   if (!isFinite(r.be)) {
-    svg.innerHTML = `<line class="base-l" x1="${L}" x2="${W - R}" y1="${Y}" y2="${Y}"/><text x="${L}" y="${Y - 12}">No break-even. Each customer loses money at these inputs.</text>`;
+    const why = r.perCust < 0 ? "Each customer loses money at these inputs." : "Customers add no contribution at these inputs.";
+    svg.innerHTML = `<line class="base-l" x1="${L}" x2="${W - R}" y1="${Y}" y2="${Y}"/><text x="${L}" y="${Y - 12}">No break-even. ${why}</text>`;
     note.innerHTML = `Contribution per customer is <b>${money(r.perCust)}</b>. Fixed cost is never covered.`;
     return;
   }
   const xMax = Math.max(s.customers, r.beFull) * 1.12;
   const x = n => L + (n / xMax) * (W - L - R);
+  const anchor = px => px > W - 64 ? "end" : px < 64 ? "start" : "middle";
   const n = s.customers, be = Math.ceil(r.be), bf = Math.ceil(r.beFull);
-  const near = (a, b) => Math.abs(x(a) - x(b)) < 74;
   let h = `<line class="base-l" x1="${L}" x2="${W - R}" y1="${Y}" y2="${Y}"/>`;
   h += `<line class="fill-l" x1="${L}" x2="${x(Math.min(n, xMax))}" y1="${Y}" y2="${Y}"/>`;
-  h += `<text class="s" x="${L}" y="${Y + 20}">0</text>`;
+  if (x(be) > 110) h += `<text class="s" x="${L}" y="${Y + 22}">0</text>`;
   h += `<line class="tick" x1="${x(be)}" x2="${x(be)}" y1="${Y - 8}" y2="${Y + 8}"/>`;
-  h += `<text x="${x(be)}" y="${Y + 22}" text-anchor="middle">${be} break even</text>`;
+  h += `<text x="${x(be)}" y="${Y + 22}" text-anchor="${anchor(x(be))}">${be.toLocaleString("en-CA")} break even</text>`;
   if (bf !== be) {
     h += `<line class="tick" x1="${x(bf)}" x2="${x(bf)}" y1="${Y - 8}" y2="${Y + 8}"/>`;
-    const dy = near(be, bf) ? Y + 36 : Y + 22;
-    h += `<text x="${x(bf)}" y="${dy}" text-anchor="middle">${bf} build repaid</text>`;
+    const dy = Math.abs(x(be) - x(bf)) < 110 ? Y + 38 : Y + 22;
+    h += `<text x="${x(bf)}" y="${dy}" text-anchor="${anchor(x(bf))}">${bf.toLocaleString("en-CA")} build repaid</text>`;
   }
-  const yx = x(n), anchor = yx > W - 70 ? "end" : yx < 60 ? "start" : "middle";
+  const yx = x(n);
   h += `<rect class="you" x="${yx - 5}" y="${Y - 11}" width="10" height="22"/>`;
-  h += `<text class="you-t" x="${yx}" y="${Y - 18}" text-anchor="${anchor}">you, ${n.toLocaleString("en-CA")}</text>`;
+  h += `<text class="you-t" x="${yx}" y="${Y - 18}" text-anchor="${anchor(yx)}">you, ${n.toLocaleString("en-CA")}</text>`;
   svg.innerHTML = h;
   const per = `<b>${money(r.perCust)}</b> contribution per customer.`;
-  note.innerHTML = n >= bf ? `${per} At ${n.toLocaleString("en-CA")} customers you are ${(n - bf).toLocaleString("en-CA")} past the point where the build is paid back.`
-    : n >= be ? `${per} Operating cost is covered. ${bf - n} more customers pay back the build.`
-    : `${per} ${be - n} more customers before fixed cost is covered.`;
+  const past = s.build > 0 ? "the point where the build is paid back" : "break-even";
+  note.innerHTML = n >= bf ? `${per} At ${plural(n, "customer", "customers")} you are ${(n - bf).toLocaleString("en-CA")} past ${past}.`
+    : n >= be ? `${per} Operating cost is covered. ${plural(bf - n, "more customer pays", "more customers pay")} back the build.`
+    : `${per} ${plural(be - n, "more customer", "more customers")} before fixed cost is covered.`;
 }
 
 function render() {
@@ -364,7 +449,7 @@ function render() {
     changed = changed || diff;
     ctl.classList.toggle("changed", diff);
     const b = ctl.querySelector(".base");
-    b.innerHTML = diff ? `base ${fmt.input(k, BASE[k])}<button type="button" data-reset="${k}" aria-label="Reset ${k}">undo</button>` : "";
+    b.innerHTML = diff ? `base ${fmt.input(k, BASE[k])}<button type="button" data-reset="${k}" aria-label="Reset ${LABELS[k]} to base">undo</button>` : "";
   });
   $("resetBtn").classList.toggle("on", changed);
 
