@@ -240,7 +240,7 @@ footer { padding: 24px var(--gx) calc(28px + env(safe-area-inset-bottom)); font-
 
 <section class="strip" aria-label="Break-even">
   <h2>Where break-even sits</h2>
-  <svg id="beSvg" viewBox="0 0 360 74" role="img" aria-labelledby="beTitle"><title id="beTitle">Break-even position</title></svg>
+  <svg id="beSvg" viewBox="0 0 360 86" role="img" aria-labelledby="beTitle"><title id="beTitle">Break-even position</title></svg>
   <p id="beNote"></p>
 </section>
 
@@ -270,16 +270,18 @@ const SEG = {
   sra:  { words: 600000,  tiers: [0.65, 0.30, 0.05], retainer: 8000 }
 };
 const KEYS = Object.keys(BASE);
+const LABELS = { customers: "paying customers", mix_llf: "law firm share", mix_frfi: "bank and insurer share", mix_sra: "SaaS share", p1: "AI only price", p2: "reviewed price", p3: "certified price", c1: "AI only cost", c2: "reviewed cost", c3: "certified cost", fixed: "annual fixed cost", build: "platform build", cac: "acquisition cost" };
 const $ = id => document.getElementById(id);
 const state = { ...BASE };
 
-const money = n => "$" + Math.round(n).toLocaleString("en-CA");
+const money = n => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-CA");
+const plural = (n, one, many) => `${n.toLocaleString("en-CA")} ${n === 1 ? one : many}`;
 const fmt = {
   arr: n => n >= 1e6 ? "$" + (n / 1e6).toLocaleString("en-CA", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "M" : n >= 1e3 ? "$" + Math.round(n / 1e3) + "K" : money(n),
   gm: n => Math.round(n * 100) + "%",
   be: n => isFinite(n) ? Math.ceil(n).toLocaleString("en-CA") : "never",
   pb: n => isFinite(n) ? (n < 10 ? n.toFixed(1) : Math.round(n).toLocaleString("en-CA")) : "never",
-  input: (k, v) => (k.startsWith("p") || k.startsWith("c") && k.length === 2) ? v.toFixed(3).replace(/0$/, "") : Math.round(v).toLocaleString("en-CA")
+  input: (k, v) => /^[pc]\d$/.test(k) ? v.toFixed(3).replace(/0$/, "") : Math.round(v).toLocaleString("en-CA")
 };
 
 function compute(s) {
@@ -307,7 +309,7 @@ function compute(s) {
 }
 const BASE_R = compute(BASE);
 
-function delta(id, now, base, f, better) {
+function delta(id, now, base, f) {
   const el = $(id);
   if (!isFinite(now) && !isFinite(base)) { el.textContent = ""; return; }
   const same = isFinite(now) && isFinite(base) ? f(now) === f(base) : now === base;
@@ -318,32 +320,34 @@ function renderStrip(r, s) {
   const svg = $("beSvg"), note = $("beNote");
   const W = 360, L = 6, R = 6, Y = 40;
   if (!isFinite(r.be)) {
-    svg.innerHTML = `<line class="base-l" x1="${L}" x2="${W - R}" y1="${Y}" y2="${Y}"/><text x="${L}" y="${Y - 12}">No break-even. Each customer loses money at these inputs.</text>`;
+    const why = r.perCust < 0 ? "Each customer loses money at these inputs." : "Customers add no contribution at these inputs.";
+    svg.innerHTML = `<line class="base-l" x1="${L}" x2="${W - R}" y1="${Y}" y2="${Y}"/><text x="${L}" y="${Y - 12}">No break-even. ${why}</text>`;
     note.innerHTML = `Contribution per customer is <b>${money(r.perCust)}</b>. Fixed cost is never covered.`;
     return;
   }
   const xMax = Math.max(s.customers, r.beFull) * 1.12;
   const x = n => L + (n / xMax) * (W - L - R);
+  const anchor = px => px > W - 64 ? "end" : px < 64 ? "start" : "middle";
   const n = s.customers, be = Math.ceil(r.be), bf = Math.ceil(r.beFull);
-  const near = (a, b) => Math.abs(x(a) - x(b)) < 74;
   let h = `<line class="base-l" x1="${L}" x2="${W - R}" y1="${Y}" y2="${Y}"/>`;
   h += `<line class="fill-l" x1="${L}" x2="${x(Math.min(n, xMax))}" y1="${Y}" y2="${Y}"/>`;
-  h += `<text class="s" x="${L}" y="${Y + 20}">0</text>`;
+  if (x(be) > 110) h += `<text class="s" x="${L}" y="${Y + 22}">0</text>`;
   h += `<line class="tick" x1="${x(be)}" x2="${x(be)}" y1="${Y - 8}" y2="${Y + 8}"/>`;
-  h += `<text x="${x(be)}" y="${Y + 22}" text-anchor="middle">${be} break even</text>`;
+  h += `<text x="${x(be)}" y="${Y + 22}" text-anchor="${anchor(x(be))}">${be.toLocaleString("en-CA")} break even</text>`;
   if (bf !== be) {
     h += `<line class="tick" x1="${x(bf)}" x2="${x(bf)}" y1="${Y - 8}" y2="${Y + 8}"/>`;
-    const dy = near(be, bf) ? Y + 36 : Y + 22;
-    h += `<text x="${x(bf)}" y="${dy}" text-anchor="middle">${bf} build repaid</text>`;
+    const dy = Math.abs(x(be) - x(bf)) < 110 ? Y + 38 : Y + 22;
+    h += `<text x="${x(bf)}" y="${dy}" text-anchor="${anchor(x(bf))}">${bf.toLocaleString("en-CA")} build repaid</text>`;
   }
-  const yx = x(n), anchor = yx > W - 70 ? "end" : yx < 60 ? "start" : "middle";
+  const yx = x(n);
   h += `<rect class="you" x="${yx - 5}" y="${Y - 11}" width="10" height="22"/>`;
-  h += `<text class="you-t" x="${yx}" y="${Y - 18}" text-anchor="${anchor}">you, ${n.toLocaleString("en-CA")}</text>`;
+  h += `<text class="you-t" x="${yx}" y="${Y - 18}" text-anchor="${anchor(yx)}">you, ${n.toLocaleString("en-CA")}</text>`;
   svg.innerHTML = h;
   const per = `<b>${money(r.perCust)}</b> contribution per customer.`;
-  note.innerHTML = n >= bf ? `${per} At ${n.toLocaleString("en-CA")} customers you are ${(n - bf).toLocaleString("en-CA")} past the point where the build is paid back.`
-    : n >= be ? `${per} Operating cost is covered. ${bf - n} more customers pay back the build.`
-    : `${per} ${be - n} more customers before fixed cost is covered.`;
+  const past = s.build > 0 ? "the point where the build is paid back" : "break-even";
+  note.innerHTML = n >= bf ? `${per} At ${plural(n, "customer", "customers")} you are ${(n - bf).toLocaleString("en-CA")} past ${past}.`
+    : n >= be ? `${per} Operating cost is covered. ${plural(bf - n, "more customer pays", "more customers pay")} back the build.`
+    : `${per} ${plural(be - n, "more customer", "more customers")} before fixed cost is covered.`;
 }
 
 function render() {
@@ -364,7 +368,7 @@ function render() {
     changed = changed || diff;
     ctl.classList.toggle("changed", diff);
     const b = ctl.querySelector(".base");
-    b.innerHTML = diff ? `base ${fmt.input(k, BASE[k])}<button type="button" data-reset="${k}" aria-label="Reset ${k}">undo</button>` : "";
+    b.innerHTML = diff ? `base ${fmt.input(k, BASE[k])}<button type="button" data-reset="${k}" aria-label="Reset ${LABELS[k]} to base">undo</button>` : "";
   });
   $("resetBtn").classList.toggle("on", changed);
 
